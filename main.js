@@ -12,7 +12,7 @@ global.server = {
     version: "1.0",
 }
 
-logger.log("SeChat v" + server.version)
+logger.log("YesVNC v" + server.version)
 logger.log("Settng up ratelimits...")
 global.rateLimit = {}
 global.ratelimitData = {}
@@ -111,9 +111,14 @@ eh.on("request", function (request, response) {
                     response.writeHead(200, { "Content-Type": "text/javascript" })
                     response.end(fs.readFileSync("./public/" + path + ".js"))
                 } else {
-                    response.writeHead(404, { "Content-Type": "text/plain" })
-                    response.write("404 Not Found\n")
-                    response.end()
+                    if (fs.existsSync("./public/" + path + ".lua")) {
+                        response.writeHead(200, { "Content-Type": "text/plain" })
+                        response.end(fs.readFileSync("./public/" + path + ".lua"))
+                    } else {
+                        response.writeHead(404, { "Content-Type": "text/plain" })
+                        response.write("404 Not Found\n")
+                        response.end()
+                    }
                 }
             }
         }
@@ -153,9 +158,27 @@ server.ws.on("connection", function(socket) {
         if (global.sockets.includes(socket)) {
             global.sockets.splice(sockets.indexOf(socket), 1)   
         }
+
+        if (socket.lid != undefined) {
+            for (let i = 0; i < sockets.length; i++) {
+                let sub = sockets[i].isSubscribed("all")
+                if (sub != false && sub.args[0] == socket.lid) {
+                    sockets[i].emit("disconnected")
+                }
+            }
+        }
     })
     socket.on("subscribe", function(event, ...args) {
         socket.sub.push({event: event, args: args})
+    })
+    socket.on("computer", function(type, lid, id) {
+        socket.lid = lid
+        for (let i = 0; i < sockets.length; i++) {
+            let sub = sockets[i].isSubscribed("all")
+            if (sub != false && sub.args[0] == lid) {
+                sockets[i].emit("connected", type, id)
+            }
+        }
     })
     global.sockets.push(socket)
 })
