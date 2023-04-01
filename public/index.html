@@ -19,17 +19,6 @@
         </div>
         <script src="/socio"></script>
         <script>
-            var biggyity = 13
-            function generateString(len) {
-                let out = ""
-                //every lowercase character, number, uppercase character
-                let chars = "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                for (let i = 0; i < len; i++) {
-                    out += chars[Math.floor(Math.random() * chars.length)]
-                }
-                return out
-            }
-
             function serce(serce) {
                 let out = {}
                 serce = serce.replace("?", "")
@@ -40,142 +29,19 @@
                 }
                 return out
             }
-
-            var LID = generateString(32)
-            let vdi = serce(window.location.search).id
-            if (vdi != undefined && vdi != "") {
-                LID = vdi
-            }
+            var LID = serce(window.location.search).id
 
             let cont = document.getElementById('cont');
-            function def() {
-                cont.innerHTML = `
-                On a cc/oc computer run:<br>
-                <input class="ui input" disabled="disabled" value="yesvnc.lua ws://${window.location.hostname}:1011 ${LID}"></input><br>
-                `
-            }
-            def()
-            let can
-            let context
-            function scr() {
-                cont.innerHTML = `
-                <canvas id="can" style="outline: black 3px solid;"></canvas>
-                `
-                can = document.getElementById('can')
-                context = can.getContext('2d')
-                can.onclick = function(e) {
-                    let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity)-1
-                    let y = Math.floor((e.clientY - can.getBoundingClientRect().top) / biggyity)
-                    //console.log(x,y);
-                    sock.emit('interact', LID, 'click', x, y)
-                }
-                can.setAttribute('tabindex', '0');
-                can.addEventListener('keydown', function(event) {
-                    let tt = {
-                        "control": "leftCtrl",
-                        "arrowup": "up",
-                        "arrowdown": "down",
-                        "arrowleft": "left",
-                        "arrowright": "right"
-                    }
+            cont.innerHTML = `
+            <iframe id="frammo" src="/raw?id=${LID}&big=20" style="width:100%; height:100%; border:none; margin:0; padding:0; z-index:999999;"></iframe>
+            `
+            let iframe = document.getElementById('frammo');
+            let container = document.getElementById('cont');
 
-                    let k = event.key.toLocaleLowerCase()
-                    //console.log(k);
-                    if (tt[k] != undefined) {
-                        k = tt[k]
-                    }
-                    sock.emit('interact', LID, 'keydown', k)
-                    event.preventDefault()
-                })
-                can.addEventListener('wheel', function(e) {
-                    let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity)-1
-                    let y = Math.floor((e.clientY - can.getBoundingClientRect().top) / biggyity)
-                    if (e.wheelDelta > 0) {
-                        sock.emit('interact', LID, 'scroll', -1, x, y)
-                    } else {
-                        sock.emit('interact', LID, 'scroll', 1, x, y)
-                    }
-                })
-            }
-
-            let sock = new Socio("ws://" + window.location.hostname + ":1011")
-            sock.emit("subscribe", "screen", LID)
-            sock.on("connected", function(type, id) {
-                toast("Connected", "Connected (non encrypted) to #" + id + " (" + type + ")")
-                scr()
-            })
-            sock.on("disconnected", function() {
-                toast("Disconnected", "The computer disconnected")
-                def()
-            })
-
-            let storage = {}
-            let colorTable = {
-                1: "white",
-                2: "orange",
-                4: "magenta",
-                8: "lightblue",
-                16: "yellow",
-                32: "lime",
-                64: "pink",
-                128: "gray",
-                256: "lightgray",
-                512: "cyan",
-                1024: "purple",
-                2048: "blue",
-                4096: "brown",
-                8192: "green",
-                16384: "red",
-                32768: "black"
-            }
-            let colorTableBlit = {
-                0: "white",
-                1: "orange",
-                2: "magenta",
-                3: "lightblue",
-                4: "yellow",
-                5: "lime",
-                6: "pink",
-                7: "gray",
-                8: "lightgray",
-                9: "cyan",
-                "a": "purple",
-                "b": "blue",
-                "c": "brown",
-                "d": "green",
-                "e": "red",
-                "f": "black"
-            }
-
-            function clr() {
-                context.fillStyle = "black"
-                context.font = biggyity+"px sans-serif"
-                context.fillRect(0,0,can.width,can.height)
-            }
-
-            sock.on("screen", function(dat) {
-                can.style.width = dat.w * biggyity + biggyity + "px"
-                can.style.height = dat.h * biggyity + 7 + "px"
-                can.width = dat.w * biggyity + biggyity
-                can.height = dat.h * biggyity + 7
-
-                clr()
-                for (let i = 0; i < dat.lines.length; i++) {
-                    let x = biggyity
-                    for (let ii = 0; ii < dat.lines[i].length; ii++) {
-                        context.fillStyle = colorTableBlit[dat.bgColors[i][ii]]
-                        let t = context.measureText(dat.lines[i][ii])
-                        context.fillRect(x, i * biggyity+5, t.width, i * biggyity+biggyity)
-                        context.fillStyle = colorTableBlit[dat.colors[i][ii]]
-                        if (dat.cursorBlink && i == dat.cursorY-1 && ii == dat.cursorX-1) {
-                            context.fillText(dat.lines[i][ii] + "_", x, i * biggyity+biggyity)
-                        } else {
-                            context.fillText(dat.lines[i][ii], x, i * biggyity+biggyity)
-                        }
-                        x = x + biggyity//t.width
-                    }
-                }
-            })
+            setInterval(function() {
+                container.style.width = iframe.contentWindow.document.body.scrollWidth + 'px';
+                container.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+            },1000)
         </script>
     </body>
 </html>

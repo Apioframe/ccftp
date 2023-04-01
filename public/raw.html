@@ -147,7 +147,7 @@
                     for (let ii = 0; ii < dat.lines[i].length; ii++) {
                         context.fillStyle = colorTableBlit[dat.bgColors[i][ii]]
                         let t = context.measureText(dat.lines[i][ii])
-                        context.fillRect(x, i * biggyityy+10, t.width, i * biggyityy+biggyityy)
+                        context.fillRect(x, i * biggyityy+(biggyityy/2)-5, t.width, i * biggyityy+biggyityy)
                         context.fillStyle = colorTableBlit[dat.colors[i][ii]]
                         if (dat.cursorBlink && i == dat.cursorY-1 && ii == dat.cursorX-1) {
                             context.fillText(dat.lines[i][ii], x, i * biggyityy+biggyityy)
