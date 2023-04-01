@@ -29,14 +29,29 @@
                 }
                 return out
             }
-            var LID = serce(window.location.search).id
+            function generateString(len) {
+                let out = ""
+                //every lowercase character, number, uppercase character
+                let chars = "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                for (let i = 0; i < len; i++) {
+                    out += chars[Math.floor(Math.random() * chars.length)]
+                }
+                return out
+            }
+            var LID = generateString(32)
+            let vdi = serce(window.location.search).id
+            if (vdi != undefined && vdi != "") {
+                LID = vdi
+            }
 
             let cont = document.getElementById('cont');
             cont.innerHTML = `
-            <iframe id="frammo" src="/raw?id=${LID}&big=20" style="width:100%; height:100%; border:none; margin:0; padding:0; z-index:999999;"></iframe>
+            On a cc/oc computer run:<br>
+            <input class="ui input" disabled="disabled" value="yesvnc.lua ws://${window.location.hostname}:1011 ${LID}"></input><br>
+            <div id="frim"><iframe id="frammo" src="/raw?id=${LID}&big=20" style="width:100%; height:100%; border:none; margin:0; padding:0; z-index:999999;"></iframe></div>
             `
             let iframe = document.getElementById('frammo');
-            let container = document.getElementById('cont');
+            let container = document.getElementById('frim');
 
             setInterval(function() {
                 container.style.width = iframe.contentWindow.document.body.scrollWidth + 'px';

@@ -42,7 +42,7 @@
             let can = document.getElementById('can')
             let context = can.getContext('2d')
             can.onclick = function(e) {
-                let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity)-1
+                let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity)
                 let y = Math.floor((e.clientY - can.getBoundingClientRect().top) / biggyityy)
                 //console.log(x,y);
                 sock.emit('interact', LID, 'click', x, y)
@@ -66,7 +66,7 @@
                 event.preventDefault()
             })
             can.addEventListener('wheel', function(e) {
-                let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity)-1
+                let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity)
                 let y = Math.floor((e.clientY - can.getBoundingClientRect().top) / biggyityy)
                 if (e.wheelDelta > 0) {
                     sock.emit('interact', LID, 'scroll', -1, x, y)
@@ -132,7 +132,7 @@
             }
 
             function clr() {
-                context.fillStyle = "black"
+                context.fillStyle = "black" 
                 context.font = biggyityy+"px Courier New"
                 context.fillRect(0,0,can.width,can.height)
             }
@@ -160,7 +160,26 @@
                         } else {
                             context.fillText(dat.lines[i][ii], x, i * biggyityy+biggyityy)
                         }
-                        x = x + biggyity-1//t.width
+                        let priority = [
+                            ",",
+                            "(",
+                            ")",
+                            "[",
+                            "]",
+                            "{",
+                            "}",
+                            "'",
+                            ":",
+                            "<",
+                            ">",
+                            "=",
+                            "~"
+                        ]
+                        if (priority.includes(dat.lines[i][ii])) {
+                            x = x + biggyity+5//t.width
+                        } else {
+                            x = x + biggyity-1//t.width
+                        }
                     }
                 }
             })
