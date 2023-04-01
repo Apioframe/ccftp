@@ -286,20 +286,24 @@ else
         ngpu.dirty = false
     ]]
 
+    function transmat()
+        soc.emit("screen", args[2], {
+            lines=guppa.lines,
+            colors=guppa.colors,
+            bgColors=guppa.bgColors,
+            cursorX = guppa.cursorX,
+            cursorY = guppa.cursorY,
+            cursorBlink = guppa.cursorBlink,
+            w=guppa.w,
+            h=guppa.h
+        })
+        guppa.dirty = false
+    end
+
     function taack()
         while true do
             if guppa.dirty then
-                soc.emit("screen", args[2], {
-                    lines=guppa.lines,
-                    colors=guppa.colors,
-                    bgColors=guppa.bgColors,
-                    cursorX = guppa.cursorX,
-                    cursorY = guppa.cursorY,
-                    cursorBlink = guppa.cursorBlink,
-                    w=guppa.w,
-                    h=guppa.h
-                })
-                guppa.dirty = false
+                transmat()
             end
             os.sleep(0.1)
         end
@@ -319,6 +323,10 @@ else
         if evnt == "scroll" then
             os.queueEvent("mouse_scroll", irgs[1], irgs[2], irgs[3])
         end
+    end)
+
+    soc.on('ping', function()
+        transmat()
     end)
 
     parallel.waitForAny(function()

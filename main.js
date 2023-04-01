@@ -196,5 +196,13 @@ server.ws.on("connection", function(socket) {
             }
         }
     })
+    socket.on("ping", function(lid) {
+        for (let i = 0; i < sockets.length; i++) {
+            let sub = sockets[i].isSubscribed("interact")
+            if (sub != false && sub.args[0] == lid) {
+                sockets[i].emit("ping")
+            }
+        }
+    })
     global.sockets.push(socket)
 })

@@ -6,10 +6,11 @@
         <canvas id="can" style="outline: black 3px solid;"></canvas>
         <script src="/socio"></script>
         <script>
-            var biggyity = 13
+            var biggyityy = 13
+            var biggyity
             let vargy = serce(window.location.search).big
             if (vargy != undefined && vargy != "") {
-                biggyity = Number(vargy)
+                biggyityy = Number(vargy)
             }
             function generateString(len) {
                 let out = ""
@@ -38,57 +39,55 @@
                 LID = vdi
             }
 
-            let can
-            let context
-            function scr() {
-                document.body.innerHTML += "" 
-                can = document.getElementById('can')
-                context = can.getContext('2d')
-                can.onclick = function(e) {
-                    let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity)-1
-                    let y = Math.floor((e.clientY - can.getBoundingClientRect().top) / biggyity)
-                    //console.log(x,y);
-                    sock.emit('interact', LID, 'click', x, y)
-                }
-                can.setAttribute('tabindex', '0');
-                can.addEventListener('keydown', function(event) {
-                    let tt = {
-                        "control": "leftCtrl",
-                        "arrowup": "up",
-                        "arrowdown": "down",
-                        "arrowleft": "left",
-                        "arrowright": "right"
-                    }
-
-                    let k = event.key.toLocaleLowerCase()
-                    //console.log(k);
-                    if (tt[k] != undefined) {
-                        k = tt[k]
-                    }
-                    sock.emit('interact', LID, 'keydown', k)
-                    event.preventDefault()
-                })
-                can.addEventListener('wheel', function(e) {
-                    let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity)-1
-                    let y = Math.floor((e.clientY - can.getBoundingClientRect().top) / biggyity)
-                    if (e.wheelDelta > 0) {
-                        sock.emit('interact', LID, 'scroll', -1, x, y)
-                    } else {
-                        sock.emit('interact', LID, 'scroll', 1, x, y)
-                    }
-                })
+            let can = document.getElementById('can')
+            let context = can.getContext('2d')
+            can.onclick = function(e) {
+                let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity)-1
+                let y = Math.floor((e.clientY - can.getBoundingClientRect().top) / biggyityy)
+                //console.log(x,y);
+                sock.emit('interact', LID, 'click', x, y)
             }
+            can.setAttribute('tabindex', '0');
+            can.addEventListener('keydown', function(event) {
+                let tt = {
+                    "control": "leftCtrl",
+                    "arrowup": "up",
+                    "arrowdown": "down",
+                    "arrowleft": "left",
+                    "arrowright": "right"
+                }
+
+                let k = event.key.toLocaleLowerCase()
+                //console.log(k);
+                if (tt[k] != undefined) {
+                    k = tt[k]
+                }
+                sock.emit('interact', LID, 'keydown', k)
+                event.preventDefault()
+            })
+            can.addEventListener('wheel', function(e) {
+                let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity)-1
+                let y = Math.floor((e.clientY - can.getBoundingClientRect().top) / biggyityy)
+                if (e.wheelDelta > 0) {
+                    sock.emit('interact', LID, 'scroll', -1, x, y)
+                } else {
+                    sock.emit('interact', LID, 'scroll', 1, x, y)
+                }
+            })
 
             let sock = new Socio("ws://" + window.location.hostname + ":1011")
             sock.emit("subscribe", "screen", LID)
             sock.on("connected", function(type, id) {
                 //toast("Connected", "Connected (non encrypted) to #" + id + " (" + type + ")")
-                scr()
+                //scr()
+                sock.emit('ping', LID)
             })
             sock.on("disconnected", function() {
                 //toast("Disconnected", "The computer disconnected")
                 //def()
             })
+            sock.emit('ping', LID)
+            sock.emit('ping', LID)
 
             let storage = {}
             let colorTable = {
@@ -130,15 +129,18 @@
 
             function clr() {
                 context.fillStyle = "black"
-                context.font = biggyity+"px sans-serif"
+                context.font = biggyityy+"px Courier New"
                 context.fillRect(0,0,can.width,can.height)
             }
 
             sock.on("screen", function(dat) {
+                //We need this two times, because why not?!
+                biggyity = context.measureText("a").width
+
                 can.style.width = dat.w * biggyity + biggyity + "px"
-                can.style.height = dat.h * biggyity + 7 + "px"
+                can.style.height = dat.h * biggyityy + 7 + "px"
                 can.width = dat.w * biggyity + biggyity
-                can.height = dat.h * biggyity + 7
+                can.height = dat.h * biggyityy + 7
 
                 clr()
                 for (let i = 0; i < dat.lines.length; i++) {
@@ -146,14 +148,14 @@
                     for (let ii = 0; ii < dat.lines[i].length; ii++) {
                         context.fillStyle = colorTableBlit[dat.bgColors[i][ii]]
                         let t = context.measureText(dat.lines[i][ii])
-                        context.fillRect(x, i * biggyity+5, t.width, i * biggyity+biggyity)
+                        context.fillRect(x, i * biggyityy+5, t.width, i * biggyity+biggyityy)
                         context.fillStyle = colorTableBlit[dat.colors[i][ii]]
                         if (dat.cursorBlink && i == dat.cursorY-1 && ii == dat.cursorX-1) {
-                            context.fillText(dat.lines[i][ii] + "_", x, i * biggyity+biggyity)
+                            context.fillText(dat.lines[i][ii] + "%", x, i * biggyityy+biggyityy)
                         } else {
-                            context.fillText(dat.lines[i][ii], x, i * biggyity+biggyity)
+                            context.fillText(dat.lines[i][ii], x, i * biggyityy+biggyityy)
                         }
-                        x = x + biggyity//t.width
+                        x = x + biggyity-1//t.width
                     }
                 }
             })
