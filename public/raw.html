@@ -41,6 +41,7 @@
             let can
             let context
             function scr() {
+                document.body.innerHTML += "" 
                 can = document.getElementById('can')
                 context = can.getContext('2d')
                 can.onclick = function(e) {
