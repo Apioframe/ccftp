@@ -33,29 +33,40 @@ else
 
     function senndy()
         while true do
-            soc.emit("screen", queue)
-            queue = {}
+            if #queue > 0 then
+                local sent = {}
+                for i=1,50,1 do
+                    table.insert(sent, queue[i])
+                end
+                soc.emit("screen", sent)
+                for i=1,50,1 do
+                    table.remove(queue, 1)
+                end
+            end
             os.sleep(0.1)
         end
     end
 
     _G.queue = {}
     for k,v in pairs(term) do
-        term[k] = function(...)
-            local tosend = {k}
-            for k,v in ipairs({...}) do
-                if (type(v) == "number") or (type(v) == "string") then
-                    table.insert(tosend, v)
+        if (k ~= "redirect") and (k ~= "current") then
+            term[k] = function(...)
+                local tosend = {k}
+                for k,v in ipairs({...}) do
+                    if (type(v) == "number") or (type(v) == "string") then
+                        table.insert(tosend, v)
+                    end
                 end
+                table.insert(queue, tosend)
+                --pcall(soc.emit,"screen", k, table.unpack(tosend))
+                return v(...) 
             end
-            table.insert(queue, tosend)
-            --pcall(soc.emit,"screen", k, table.unpack(tosend))
-            return v(...) 
         end
     end
     _G.yesvnc = {soc=soc,oterm=oterm}
 
     parallel.waitForAny(senndy, function()
+        shell.run("clear")
         shell.run("shell")
     end)
     yesvnc.soc.close()
