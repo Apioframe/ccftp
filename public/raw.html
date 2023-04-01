@@ -134,13 +134,12 @@
             }
 
             sock.on("screen", function(dat) {
-                //We need this two times, because why not?!
                 biggyity = context.measureText("a").width
 
                 can.style.width = dat.w * biggyity + biggyity + "px"
-                can.style.height = dat.h * biggyityy + 7 + "px"
+                can.style.height = dat.h * biggyityy + 10 + "px"
                 can.width = dat.w * biggyity + biggyity
-                can.height = dat.h * biggyityy + 7
+                can.height = dat.h * biggyityy + 10
 
                 clr()
                 for (let i = 0; i < dat.lines.length; i++) {
@@ -148,10 +147,12 @@
                     for (let ii = 0; ii < dat.lines[i].length; ii++) {
                         context.fillStyle = colorTableBlit[dat.bgColors[i][ii]]
                         let t = context.measureText(dat.lines[i][ii])
-                        context.fillRect(x, i * biggyityy+5, t.width, i * biggyity+biggyityy)
+                        context.fillRect(x, i * biggyityy+10, t.width, i * biggyityy+biggyityy)
                         context.fillStyle = colorTableBlit[dat.colors[i][ii]]
                         if (dat.cursorBlink && i == dat.cursorY-1 && ii == dat.cursorX-1) {
-                            context.fillText(dat.lines[i][ii] + "%", x, i * biggyityy+biggyityy)
+                            context.fillText(dat.lines[i][ii], x, i * biggyityy+biggyityy)
+                            context.fillStyle = "white"
+                            context.fillText("_", x, i * biggyityy+biggyityy)
                         } else {
                             context.fillText(dat.lines[i][ii], x, i * biggyityy+biggyityy)
                         }
