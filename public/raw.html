@@ -80,7 +80,6 @@
             sock.on("connected", function(type, id) {
                 //toast("Connected", "Connected (non encrypted) to #" + id + " (" + type + ")")
                 //scr()
-                sock.emit('ping', LID)
             })
             sock.on("disconnected", function() {
                 //toast("Disconnected", "The computer disconnected")
@@ -90,7 +89,6 @@
                 let mes = context.measureText("No connection")
                 context.fillText("No connection",(can.width/2)-(mes.width/2),can.height/2)
             })
-            sock.emit('ping', LID)
             sock.emit('ping', LID)
 
             let storage = {}
@@ -137,6 +135,7 @@
                 context.fillRect(0,0,can.width,can.height)
             }
 
+            let helloed = false
             sock.on("screen", function(dat) {
                 biggyity = context.measureText("a").width
 
@@ -144,6 +143,11 @@
                 can.style.height = dat.h * biggyityy + 10 + "px"
                 can.width = dat.w * biggyity + biggyity
                 can.height = dat.h * biggyityy + 10
+
+                if (!helloed) {
+                    sock.emit('ping', LID)
+                    helloed = true
+                }
 
                 clr()
                 for (let i = 0; i < dat.lines.length; i++) {
