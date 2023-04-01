@@ -51,6 +51,11 @@
                 `
                 can = document.getElementById('can')
                 context = can.getContext('2d')
+                can.onclick = function(e) {
+                    let x = Math.floor((e.clientX - can.offsetWidth) / 13)+19
+                    let y = Math.floor((e.clientY - can.offsetHeight) / 13)+7
+                    sock.emit('interact', 'click', x, y)
+                }
             }
 
             let sock = new Socio("ws://" + window.location.hostname + ":1011")
@@ -83,6 +88,24 @@
                 16384: "red",
                 32768: "black"
             }
+            let colorTableBlit = {
+                0: "white",
+                1: "orange",
+                2: "magenta",
+                3: "lightblue",
+                4: "yellow",
+                5: "lime",
+                6: "pink",
+                7: "gray",
+                8: "lightgray",
+                9: "cyan",
+                "a": "purple",
+                "b": "blue",
+                "c": "brown",
+                "d": "green",
+                "e": "red",
+                "f": "black"
+            }
 
             function clr() {
                 context.fillStyle = "black"
@@ -91,68 +114,25 @@
             }
 
             sock.on("screen", function(dat) {
-                ////TODO: capture packets and send them to the client and then with a for loop render it out
-                //TODO: create a list of the columns with the last writen char (if the last is closer to 0 then use the laster one)
-                //And then clear that part on write
-                if (dat.length == undefined || dat == undefined) {
-                    return
-                }
-                for (let i = 0; i < dat.length; i++) {
-                    let evnt = dat[i][0]
-                    let args = dat[i]
-                    args.splice(0,1)
+                can.style.width = dat.w * 13 + 13 + "px"
+                can.style.height = dat.h * 13 + 7 + "px"
+                can.width = dat.w * 13 + 13
+                can.height = dat.h * 13 + 7
 
-                    //cc Compatibility
-                    if (evnt == "resize") {
-                        can.style.width = args[0] * 13 + "px"
-                        can.style.height = args[1] * 13 + "px"
-                        can.width = args[0] * 13
-                        can.height = args[1] * 13
-                        
-                        clr()
-                    }
-                    if (evnt == "setTextColor" || evnt == "setTextColour") {
-                        context.fillStyle = colorTable[args[0]]
-                    }
-                    if (evnt == "setBackgroundColor" || evnt == "setBackgroundColour") {
-                        storage.bg = colorTable[args[0]]
-                    }
-                    if (evnt == "setCursorPos") {
-                        storage.x = args[0] * 13
-                        storage.y = args[1] * 13
-                    }
-                    if (evnt == "write") {
-                        let wh = context.measureText(args[0])
-                        let he = 13 * 1.5
-
-                        let sto = context.fillStyle
-                        context.fillStyle = storage.bg
-                        context.fillRect(storage.x,storage.y-13,wh.width,he)
-
-                        context.fillStyle = sto
-                        context.fillText(args[0],storage.x,storage.y)
-                        storage.x = storage.x + wh.width
-                    }
-                    if (evnt == "clearLine") {
-                        let sto = context.fillStyle
-                        context.fillStyle = storage.bg
-                        //let h = context.measureText("a")
-                        let he = 13 * 1.5
-                        context.fillRect(0,storage.y,can.width,he)
-                        context.fillStyle = sto
-                    }
-                    if (evnt == "clear") {
-                        clr()
-                    }
-                    if (evnt == "scroll") {
-                        let sto = context.fillStyle
-                        context.fillStyle = storage.bg
-                        let img = context.getImageData(0,13,can.width,can.height/* - storage.scroll*/)
-                        context.fillRect(0,0,can.width,can.height)
-
-                        context.putImageData(img, 0, 0)
-                        context.fillRect(0,can.height-13,can.width,can.height)
-                        context.fillStyle = sto
+                clr()
+                for (let i = 0; i < dat.lines.length; i++) {
+                    let x = 13
+                    for (let ii = 0; ii < dat.lines[i].length; ii++) {
+                        context.fillStyle = colorTableBlit[dat.bgColors[i][ii]]
+                        let t = context.measureText(dat.lines[i][ii])
+                        context.fillRect(x, i * 13+5, t.width, i * 13+13)
+                        context.fillStyle = colorTableBlit[dat.colors[i][ii]]
+                        if (dat.cursorBlink && i == dat.cursorY-1 && ii == dat.cursorX-1) {
+                            context.fillText(dat.lines[i][ii] + "_", x, i * 13+13)
+                        } else {
+                            context.fillText(dat.lines[i][ii], x, i * 13+13)
+                        }
+                        x = x + 13//t.width
                     }
                 }
             })

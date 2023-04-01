@@ -181,9 +181,6 @@ server.ws.on("connection", function(socket) {
         }
     })
     socket.on("screen", function(...args) {
-        if (args[0] == "redirect" || args[0] == "current") {
-            return
-        }
         if (socket.lid != undefined) {
             for (let i = 0; i < sockets.length; i++) {
                 let sub = sockets[i].isSubscribed("all")
