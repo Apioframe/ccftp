@@ -325,9 +325,16 @@ else
         end
     end)
 
-    soc.on('ping', function()
-        transmat()
+    soc.on('ping', function(mode)
+        if mode == "screen" then
+            transmat()
+        end
+        if mode == "fs" then
+
+        end
     end)
+
+    --FILESYSTEM (Coming soon)
 
     parallel.waitForAny(function()
         pcall(taack)

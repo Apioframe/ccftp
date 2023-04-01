@@ -82,14 +82,13 @@
                 //scr()
             })
             sock.on("disconnected", function() {
-                //toast("Disconnected", "The computer disconnected")
-                //def()
+                helloed = false
                 clr()
                 context.fillStyle = "white"
                 let mes = context.measureText("No connection")
                 context.fillText("No connection",(can.width/2)-(mes.width/2),can.height/2)
             })
-            sock.emit('ping', LID)
+            sock.emit('ping', "screen", LID)
 
             let storage = {}
             let colorTable = {
@@ -145,7 +144,7 @@
                 can.height = dat.h * biggyityy + 10
 
                 if (!helloed) {
-                    sock.emit('ping', LID)
+                    sock.emit('ping', "screen", LID)
                     helloed = true
                 }
 

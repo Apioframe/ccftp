@@ -1,0 +1,13 @@
+<html>
+    <head>
+        <title>YesVNC Files</title>
+    </head>
+    <body>
+        <script src="/socio"></script>
+        <script>
+            let sock = new Socio("ws://" + window.location.hostname + ":1011")
+            sock.emit("subscribe", "fsclient", LID)
+            sock.emit('ping', "fs", LID)
+        </script>
+    </body>
+</html>
