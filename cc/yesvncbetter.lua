@@ -20,8 +20,7 @@ else
     function conn()
         soc = getSocket(args[1])
         soc.emit("computer", "cc", args[2], os.getComputerID())
-        local w,h = term.getSize()
-        soc.emit("screen", {{"resize", w, h}})
+        soc.emit('subscribe', 'interact', args[2])
         soc.on("close", function()
             os.shutdown()
         end)
@@ -290,7 +289,7 @@ else
     function taack()
         while true do
             if guppa.dirty then
-                soc.emit("screen", {
+                soc.emit("screen", args[2], {
                     lines=guppa.lines,
                     colors=guppa.colors,
                     bgColors=guppa.bgColors,
@@ -306,12 +305,39 @@ else
         end
     end
 
-    parallel.waitForAny(taack, function()
-        shell.run("shell")
+    soc.on('interact', function(evnt, ...)
+        local irgs = {...}
+        if evnt == "click" then
+            os.queueEvent("mouse_click", 1, irgs[1]+1, irgs[2]+1)
+        end
+        if evnt == "keydown" then
+            os.queueEvent("key", keys[irgs[1]],false)
+            if #irgs[1] == 1 then
+                os.queueEvent("char", irgs[1])
+            end
+        end
+        if evnt == "scroll" then
+            os.queueEvent("mouse_scroll", irgs[1], irgs[2], irgs[3])
+        end
     end)
 
-    term.redirect(previous_term)
-    yesvnc.soc.close()
-    print("Connection closed")
-    _G.yesvnc = nil
+    parallel.waitForAny(function()
+        pcall(taack)
+        term.redirect(previous_term)
+        yesvnc.soc.close()
+        print("Connection closed")
+        _G.yesvnc = nil
+    end, function()
+        pcall(shell.run, "shell")
+        term.redirect(previous_term)
+        yesvnc.soc.close()
+        print("Connection closed")
+        _G.yesvnc = nil
+    end, function()
+        pcall(soc.async)
+        term.redirect(previous_term)
+        yesvnc.soc.close()
+        print("Connection closed")
+        _G.yesvnc = nil
+    end)
 end

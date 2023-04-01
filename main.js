@@ -161,7 +161,7 @@ server.ws.on("connection", function(socket) {
 
         if (socket.lid != undefined) {
             for (let i = 0; i < sockets.length; i++) {
-                let sub = sockets[i].isSubscribed("all")
+                let sub = sockets[i].isSubscribed("screen")
                 if (sub != false && sub.args[0] == socket.lid) {
                     sockets[i].emit("disconnected")
                 }
@@ -174,21 +174,27 @@ server.ws.on("connection", function(socket) {
     socket.on("computer", function(type, lid, id) {
         socket.lid = lid
         for (let i = 0; i < sockets.length; i++) {
-            let sub = sockets[i].isSubscribed("all")
+            let sub = sockets[i].isSubscribed("screen")
             if (sub != false && sub.args[0] == lid) {
                 sockets[i].emit("connected", type, id)
             }
         }
     })
-    socket.on("screen", function(...args) {
-        if (socket.lid != undefined) {
-            for (let i = 0; i < sockets.length; i++) {
-                let sub = sockets[i].isSubscribed("all")
-                if (sub != false && sub.args[0] == socket.lid) {
-                    sockets[i].emit("screen", ...args)
-                }
+    socket.on("screen", function(lid, ...args) {
+        for (let i = 0; i < sockets.length; i++) {
+            let sub = sockets[i].isSubscribed("screen")
+            if (sub != false && sub.args[0] == lid) {
+                sockets[i].emit("screen", ...args)
             }
-        }   
+        }  
+    })
+    socket.on('interact', function(lid, ...args) {
+        for (let i = 0; i < sockets.length; i++) {
+            let sub = sockets[i].isSubscribed("interact")
+            if (sub != false && sub.args[0] == lid) {
+                sockets[i].emit("interact", ...args)
+            }
+        }
     })
     global.sockets.push(socket)
 })
