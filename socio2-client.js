@@ -39,6 +39,7 @@ class Socio {
                 eh.call(...pars)
             } catch (e) {
                 console.log("Failed to parse socket data!");
+                console.error(e.stack);
             }
         }
         this.ws.onclose = function () {
