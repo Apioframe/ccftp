@@ -21,6 +21,7 @@ else
         soc = getSocket(args[1])
         soc.emit("computer", "cc", args[2], os.getComputerID())
         soc.emit('subscribe', 'interact', args[2])
+        soc.emit('subscribe', 'fs', args[2])
         soc.on("close", function()
             os.shutdown()
         end)
@@ -30,6 +31,8 @@ else
     print("Connected")
 
     _G.yesvnc = {soc=soc}
+
+    --Graphics
 
     local function newGPU(w,h,original)
         local ngpu = {}
@@ -309,6 +312,10 @@ else
         end
     end
 
+    function systerm()
+        os.queueEvent("terminate")
+    end
+
     soc.on('interact', function(evnt, ...)
         local irgs = {...}
         if evnt == "click" then
@@ -323,6 +330,9 @@ else
         if evnt == "scroll" then
             os.queueEvent("mouse_scroll", irgs[1], irgs[2], irgs[3])
         end
+        if evnt == "terminate" then
+            systerm()
+        end
     end)
 
     soc.on('ping', function(mode)
@@ -334,25 +344,39 @@ else
         end
     end)
 
-    --FILESYSTEM (Coming soon)
+    --Filesystem (Coming soon)
 
-    parallel.waitForAny(function()
-        pcall(taack)
-        term.redirect(previous_term)
+    --Other
+    function a()
+        local stat, err = pcall(taack)
+        print(err)
+        a()
+        
+        --[[term.redirect(previous_term)
         yesvnc.soc.close()
         print("Connection closed")
-        _G.yesvnc = nil
-    end, function()
-        pcall(shell.run, "shell")
-        term.redirect(previous_term)
+        _G.yesvnc = nil]]
+    end
+    function b()
+        local stat, err = pcall(shell.run, "shell")
+        print(err)
+        b()
+        
+        --[[term.redirect(previous_term)
         yesvnc.soc.close()
         print("Connection closed")
-        _G.yesvnc = nil
-    end, function()
-        pcall(soc.async)
-        term.redirect(previous_term)
+        _G.yesvnc = nil]]
+    end
+    function c()
+        local stat, err = pcall(soc.async, true)
+        print(err)
+        c()
+        
+        --[[term.redirect(previous_term)
         yesvnc.soc.close()
         print("Connection closed")
-        _G.yesvnc = nil
-    end)
+        _G.yesvnc = nil]]
+    end
+
+    parallel.waitForAny(a,b,c)
 end

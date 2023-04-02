@@ -7,7 +7,7 @@
         <script>
             let sock = new Socio("ws://" + window.location.hostname + ":1011")
             sock.emit("subscribe", "fsclient", LID)
-            sock.emit('ping', "fs", LID)
+            sock.emit('ping', LID, "fs")
         </script>
     </body>
 </html>

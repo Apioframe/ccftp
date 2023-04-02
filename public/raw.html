@@ -4,6 +4,7 @@
     </head>
     <body>
         <canvas id="can" style="outline: black 3px solid;"></canvas>
+        <div style="background-color: gray;width: 624px;height: 20px;outline: black solid 3px;"><button title="Terminate" onclick="terminato()">T</button></div>
         <script src="/socio"></script>
         <script>
             var biggyityy = 13
@@ -75,6 +76,10 @@
                 }
             })
 
+            function terminato() {
+                sock.emit('interact', LID, 'terminate')
+            }
+
             let sock = new Socio("ws://" + window.location.hostname + ":1011")
             sock.emit("subscribe", "screen", LID)
             sock.on("connected", function(type, id) {
@@ -88,7 +93,7 @@
                 let mes = context.measureText("No connection")
                 context.fillText("No connection",(can.width/2)-(mes.width/2),can.height/2)
             })
-            sock.emit('ping', "screen", LID)
+            sock.emit('ping', LID, "screen")
 
             let storage = {}
             let colorTable = {
@@ -144,7 +149,7 @@
                 can.height = dat.h * biggyityy + 10
 
                 if (!helloed) {
-                    sock.emit('ping', "screen", LID)
+                    sock.emit('ping', LID, "screen")
                     helloed = true
                 }
 
