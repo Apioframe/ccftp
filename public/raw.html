@@ -4,7 +4,7 @@
     </head>
     <body>
         <canvas id="can" style="outline: black 3px solid;"></canvas>
-        <div style="background-color: gray;width: 624px;height: 20px;outline: black solid 3px;"><button title="Terminate" onclick="terminato()">T</button></div>
+        <div id="dock" style="background-color: gray;width: 624px;height: 20px;outline: black solid 3px;"><button title="Terminate" onclick="terminato()">T</button></div>
         <script src="/socio"></script>
         <script>
             var biggyityy = 13
@@ -49,6 +49,12 @@
                 sock.emit('interact', LID, 'click', x, y)
             }
             can.setAttribute('tabindex', '0');
+            let isShifted = false
+            can.addEventListener('keyup', function(event) {
+                if (event.key == "Shift") {
+                    isShifted = false
+                }
+            })
             can.addEventListener('keydown', function(event) {
                 let tt = {
                     "control": "leftCtrl",
@@ -63,7 +69,10 @@
                 if (tt[k] != undefined) {
                     k = tt[k]
                 }
-                sock.emit('interact', LID, 'keydown', k)
+                sock.emit('interact', LID, 'keydown', isShifted ? k.toUpperCase() : k)
+                if (event.key == "Shift") {
+                    isShifted = true
+                }
                 event.preventDefault()
             })
             can.addEventListener('wheel', function(e) {
@@ -147,6 +156,8 @@
                 can.style.height = dat.h * biggyityy + 10 + "px"
                 can.width = dat.w * biggyity + biggyity
                 can.height = dat.h * biggyityy + 10
+
+                document.getElementById("dock").style.width = can.style.width
 
                 if (!helloed) {
                     sock.emit('ping', LID, "screen")
