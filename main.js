@@ -169,6 +169,9 @@ server.ws.on("connection", function(socket) {
         }
     })
     socket.on("subscribe", function(event, ...args) {
+        if (event == "fsclient") {
+            socket.cid = String(Math.random())
+        }
         socket.sub.push({event: event, args: args})
     })
     socket.on("computer", function(type, lid, id) {
@@ -176,6 +179,10 @@ server.ws.on("connection", function(socket) {
         for (let i = 0; i < sockets.length; i++) {
             let sub = sockets[i].isSubscribed("screen")
             if (sub != false && sub.args[0] == lid) {
+                sockets[i].emit("connected", type, id)
+            }
+            let sube = sockets[i].isSubscribed("fsclient")
+            if (sube != false && sube.args[0] == lid) {
                 sockets[i].emit("connected", type, id)
             }
         }
@@ -201,6 +208,22 @@ server.ws.on("connection", function(socket) {
             let sub = sockets[i].isSubscribed("interact")
             if (sub != false && sub.args[0] == lid) {
                 sockets[i].emit("ping", ...args)
+            }
+        }
+    })
+    socket.on("fs", function(lid, ...args) {
+        for (let i = 0; i < sockets.length; i++) {
+            let sub = sockets[i].isSubscribed("fs")
+            if (sub != false && sub.args[0] == lid) {
+                sockets[i].emit("fs", socket.cid, ...args)
+            }
+        }
+    })
+    socket.on("fsres", function(lid, cid, ...args) {
+        for (let i = 0; i < sockets.length; i++) {
+            let sub = sockets[i].isSubscribed("fsclient")
+            if (sub != false && sub.args[0] == lid && sockets[i].cid == cid) {
+                sockets[i].emit("fsres", ...args)
             }
         }
     })

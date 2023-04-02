@@ -1,13 +1,124 @@
 <html>
     <head>
         <title>YesVNC Files</title>
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.0/dist/semantic.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.0/dist/semantic.min.js"></script>
     </head>
     <body>
+        <div class="ui list" id="dir/"> </div>
         <script src="/socio"></script>
         <script>
+            function serce(serce) {
+                let out = {}
+                serce = serce.replace("?", "")
+                let spi = serce.split("&")
+                for (let i = 0; i < spi.length; i++) {
+                    let spa = spi[i].split("=")
+                    out[spa[0]] = spa[1]
+                }
+                return out
+            }
+            let serced = serce(window.location.search)
+            let LID = serced.id
+            if (LID == undefined) {
+                window.location.href = "/"
+            }
+
             let sock = new Socio("ws://" + window.location.hostname + ":1011")
             sock.emit("subscribe", "fsclient", LID)
-            sock.emit('ping', LID, "fs")
+            sock.emit('fs', LID, "tree")
+            sock.on("connected", function(type, id) {
+                sock.emit('fs', LID, "tree")
+            })
+
+            function toggle(pat) {
+                let pit = document.getElementById("click"+pat)
+                let put = document.getElementById("ico"+pat)
+                if (pit.style.display == "none") {
+                    pit.style.display = "block"
+                    put.classList.replace("right", "down")
+                } else {
+                    pit.style.display = "none"
+                    put.classList.replace("down", "right")
+                }
+            }
+
+            sock.on('fsres', function(th, ...args) {
+                if (th == "tree") {
+                    let files = document.getElementById("files")
+                    let dirs = []
+                    for (let i = 0; i < args[0].length; i++) {
+                        let spi = args[0][i].split("/")
+                        spi.splice(spi.length - 1, 1)
+                        let dir = ""
+                        for (let ii = 0; ii < spi.length; ii++) {
+                            dir = dir + spi[ii] + "/"
+                            console.log(dir);
+                            if (!dirs.includes(dir)) {
+                                dirs.push(dir)
+                            }
+                        }
+                    }
+                    
+                    //Generate the folders
+                    let i = 0
+                    function next() {
+                        let cparent = dirs[i].split("/")
+                        let that = cparent[cparent.length-2]
+                        let parent = dirs[i].replace(that + "/", "")
+                        
+                        if (parent != "") {
+                            let dac = document.getElementById("dir" + parent)
+                            if (dac != null) {
+                                dac.innerHTML += `
+                                <div class="item">
+                                    <i id="ico${dirs[i]}" class="caret right icon" onclick='toggle("${dirs[i]}")'></i>
+                                    <div class="content">
+                                        <div class="header">${that}</div>
+                                        <div class="description">Foler</div>
+                                        <div id="click${dirs[i]}" style="display: none"><div class="list" id="dir${dirs[i]}"></div></div>
+                                    </div>
+                                </div>
+                                `
+                                dirs.splice(i, 1)
+                                i = 0
+                            } else {
+                                i++
+                                if (i >= dirs.length) { i = 0 }
+                            }
+                        } else {
+                            dirs.splice(i, 1)
+                            i = 0
+                        }
+
+                        if (dirs.length > 0) { setTimeout(next, 1) } else { continua() }
+                    }
+
+                    function continua() {
+                        for (let i = 0; i < args[0].length; i++) {
+                            let cfi = args[0][i].split("/")
+                            let that = cfi[cfi.length - 1]
+                            let dir = args[0][i].replace(that, "")
+                            let dac = document.getElementById("dir" + dir)
+                            if (dac != null) {
+                                dac.innerHTML += `
+                                <div class="item">
+                                    <i class="circle icon"></i>
+                                    <div class="content">
+                                        <div class="header">${that}</div>
+                                        <div class="description">File</div>
+                                    </div>
+                                </div>
+                                `
+                            } else {
+                                console.log("dir" + dir);
+                            }
+                        }
+                    }
+                    next()
+                }
+            })
         </script>
     </body>
 </html>

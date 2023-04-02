@@ -1,8 +1,20 @@
 local args = {...}
 
+function systerm()
+    os.queueEvent("terminate")
+end
+
 local getSocket = require("socio")
 if _G.yesvnc ~= nil then
-    print("Command not understood")
+    if args[1] == "close" then
+        term.redirect(yesvnc.prevTerm)
+        yesvnc.soc.close()
+        print("Connection closed")
+        _G.yesvnc = nil
+        systerm()
+    else
+        print("Command not understood")
+    end
 else
     function copy(table)
         local out = {}
@@ -312,10 +324,6 @@ else
         end
     end
 
-    function systerm()
-        os.queueEvent("terminate")
-    end
-
     soc.on('interact', function(evnt, ...)
         local irgs = {...}
         if evnt == "click" then
@@ -339,18 +347,44 @@ else
         if mode == "screen" then
             transmat()
         end
-        if mode == "fs" then
-
-        end
     end)
 
     --Filesystem (Coming soon)
+    function recusive(dir, callback)
+        local files = fs.list(dir)
+        for k,v in ipairs(files) do
+            local path = dir..v
+            if fs.isDir(path) then
+                recusive(path.."/", callback)
+            else
+                callback(path)
+            end
+        end
+    end
+
+    soc.on('fs', function(cid, evnt, ...)
+        local irgs = {...}
+        if evnt == "tree" then
+            local out = {}
+            recusive("/", function(path)
+                table.insert(out, path)
+            end)
+            soc.emit('fsres', args[2], cid, "tree", out)
+        end
+    end)
+
+    yesvnc.prevTerm = previous_term
 
     --Other
     function a()
         local stat, err = pcall(taack)
-        print(err)
-        a()
+        if yesvnc ~= nil then
+            print(err)
+            a()
+        else
+            term.clear()
+            term.setCursorPos(1,1)
+        end
         
         --[[term.redirect(previous_term)
         yesvnc.soc.close()
@@ -359,8 +393,13 @@ else
     end
     function b()
         local stat, err = pcall(shell.run, "shell")
-        print(err)
-        b()
+        if yesvnc ~= nil then
+            print(err)
+            b()
+        else
+            term.clear()
+            term.setCursorPos(1,1)
+        end
         
         --[[term.redirect(previous_term)
         yesvnc.soc.close()
@@ -369,8 +408,13 @@ else
     end
     function c()
         local stat, err = pcall(soc.async, true)
-        print(err)
-        c()
+        if yesvnc ~= nil then
+            print(err)
+            c()
+        else
+            term.clear()
+            term.setCursorPos(1,1)
+        end
         
         --[[term.redirect(previous_term)
         yesvnc.soc.close()

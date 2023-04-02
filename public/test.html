@@ -1,0 +1,111 @@
+<meta charset="UTF-8">
+
+<!-- You MUST include jQuery before Fomantic -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.0/dist/semantic.min.css">
+<script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.0/dist/semantic.min.js"></script>
+
+<textarea id="json", placeholder="json input"></textarea>
+    <button class="ui primary button" onclick='view()'>View</button>
+    <div class="ui teal progress" data-percent="0" id="prog">
+        <div class="bar"><div class="progress">0% Loaded</div></div>
+        <div class="label" id="laba">0% Loaded</div>
+    </div>
+    <div id="output"></div>
+    <script>
+    function rannum(min, max) {
+        let num = undefined
+        while (num == undefined||num > max||num < min) {
+            num = Math.floor((Math.random() * (max - min)) + 1) - 1
+        }
+        return num
+    }
+    function toggle(id) {
+        console.log(id)
+        if (document.getElementById("out" + id).style.display == "none") {
+            document.getElementById("out" + id).style.display = "block"
+            document.getElementById("ico" + id).classList = "caret down icon"
+        } else {
+            document.getElementById("out" + id).style.display = "none"
+            document.getElementById("ico" + id).classList = "caret right icon"
+        }
+    }
+    function view() {
+        try {
+            let data = JSON.parse(document.getElementById("json").value)
+            document.getElementById("output").innerHTML = ""
+            document.getElementById("output").innerHTML += `
+            <div class="ui list" id="main"></div>
+            `
+            let co = 0
+            async function check(list) {
+                for (let i in list) {
+                    co++
+                    if (String(list[i]) == "[object Object]") {
+                        check(list[i])
+                    } else {
+                        if (JSON.stringify(list[i]).startsWith("[") && JSON.stringify(list[i]).endsWith("]")) {
+                            check(list[i])
+                        }
+                    }
+                }
+            }
+            let oc = 0
+            async function analyse(name, list) {
+                for (let i in list) {
+                    oc++
+                    $('#prog').progress({
+                        percent: Math.floor(oc/co*100),
+                        text: {
+                            percent: Math.floor(oc/co*100) + "% Loaded",
+                        }
+                    })
+                    document.getElementById("laba").innerText = Math.floor(oc/co*100) + "% Loaded"
+                    if (String(list[i]) == "[object Object]") {
+                        let id = rannum(1000,9999)
+                        document.getElementById(name).innerHTML += `
+                        <a class="item">
+                            <i id="ico${id}" class="caret right icon" onclick='toggle(${id})'></i>
+                            <div class="content">
+                                <div class="header">${i}</div>
+                                <div class="description">A table</div>
+                                <div id="out${id}" style="display: none"><div class="list" id="in${id}"></div></div>
+                            </div>
+                        </a>
+                        `
+                        setTimeout(function() { analyse("in" + id, list[i]) }, 100)
+                    } else {
+                        if (JSON.stringify(list[i]).startsWith("[") && JSON.stringify(list[i]).endsWith("]")) {
+                            let id = rannum(1000,9999)
+                            document.getElementById(name).innerHTML += `
+                            <a class="item">
+                                <i id="ico${id}" class="caret right icon" onclick='toggle(${id})'></i>
+                                <div class="content">
+                                    <div class="header">${i}</div>
+                                    <div class="description">A table</div>
+                                    <div id="out${id}" style="display: none"><div class="list" id="in${id}"></div></div>
+                                </div>
+                            </a>
+                            `
+                            setTimeout(function() { analyse("in" + id, list[i]) }, 100)
+                        } else {
+                            document.getElementById(name).innerHTML += `
+                            <a class="item">
+                                <i class="circle icon"></i>
+                                <div class="content">
+                                    <div class="header">${i}</div>
+                                    <div class="description">${list[i]}</div>
+                                </div>
+                            </a>
+                            `
+                        }
+                    }
+                }
+            }
+            check(data)
+            analyse("main", data)
+        } catch (e) {
+            document.getElementById("output").innerHTML = "An error occured: " + e
+        }
+    }
+    </script>
