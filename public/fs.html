@@ -7,6 +7,7 @@
     </head>
     <body>
         <div class="ui list" id="dir/"> </div>
+        <div id="cmenu"></div>
         <script src="/socio"></script>
         <script>
             function serce(serce) {
@@ -119,6 +120,35 @@
                     next()
                 }
             })
+
+            document.oncontextmenu = function(e) {
+                e.preventDefault();
+                cmenu(e)
+            }
+            document.onclick = function(e) {
+                cmenuhide()
+            }
+
+            function cmenu(e) {
+                let mnud = `
+                <div class="ui card" style="position: absolute; top: ${e.clientY}; left: ${e.clientX};width:12%">
+                    <button class="ui button">
+                        <i class="file icon"></i>
+                        Create new file
+                    </button>
+                    <button class="ui button">
+                        <i class="folder icon"></i>
+                        Create new folder
+                    </button>
+                </div>
+                `
+                let dav = document.getElementById("cmenu")
+                dav.innerHTML = mnud
+            }
+            function cmenuhide() {
+                let dav = document.getElementById("cmenu")
+                dav.innerHTML = ""
+            }
         </script>
     </body>
 </html>
