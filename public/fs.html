@@ -6,7 +6,8 @@
         <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.0/dist/semantic.min.js"></script>
     </head>
     <body>
-        <div class="ui list" id="dir/"> </div>
+        <div class="ui breadcrumb" id="paf"></div>
+        <div class="ui list" id="files"></div>
         <div id="cmenu"></div>
         <script src="/socio"></script>
         <script>
@@ -22,15 +23,20 @@
             }
             let serced = serce(window.location.search)
             let LID = serced.id
+            let DIR = serced.dir
             if (LID == undefined) {
                 window.location.href = "/"
+            } else {
+                if (DIR == undefined) {
+                    window.location.href = "/fs?id=" + LID + "&dir=/"
+                }
             }
 
             let sock = new Socio("ws://" + window.location.hostname + ":1011")
             sock.emit("subscribe", "fsclient", LID)
-            sock.emit('fs', LID, "tree")
+            sock.emit('fs', LID, "list", DIR)
             sock.on("connected", function(type, id) {
-                sock.emit('fs', LID, "tree")
+                sock.emit('fs', LID, "list", DIR)
             })
 
             function toggle(pat) {
@@ -45,79 +51,55 @@
                 }
             }
 
+            function devider() {
+                let piff = document.getElementById("paf")
+                piff.innerHTML = `<a class="divider" style="cursor: pointer" onclick="selDir('/', true)"> / </a>`
+                let spa = DIR.split("/")
+                let dar = "/"
+                for (let i = 1; i < spa.length-1; i++) {
+                    dar = dar + spa[i] + "/"
+                    piff.innerHTML += `
+                    <a class="section" style="cursor: pointer" onclick="selDir('${dar}', true)">${spa[i]}</a>
+                    <div class="divider"> / </div>
+                    `
+                }
+            }
+            devider()
+
+            function selDir(strung, force) {
+                window.history.pushState({"html": document.body.innerHTML, "pageTitle": document.title},"","http://" + window.location.host + `/fs?id=${LID}&dir=${!force ? DIR : ""}${strung}`)
+                DIR = (!force ? DIR : "") + strung
+                devider()
+                refresh()
+            }
+
             sock.on('fsres', function(th, ...args) {
-                if (th == "tree") {
-                    let files = document.getElementById("files")
-                    let dirs = []
-                    for (let i = 0; i < args[0].length; i++) {
-                        let spi = args[0][i].split("/")
-                        spi.splice(spi.length - 1, 1)
-                        let dir = ""
-                        for (let ii = 0; ii < spi.length; ii++) {
-                            dir = dir + spi[ii] + "/"
-                            console.log(dir);
-                            if (!dirs.includes(dir)) {
-                                dirs.push(dir)
-                            }
-                        }
+                if (th == "list") {
+                    let dac = document.getElementById("files")
+                    dac.innerHTML = ""
+                    for (let i = 0; i < args[0].dirs.length; i++) {
+                        let strung = args[0].dirs[i]
+                        dac.innerHTML += `
+                        <div class="item">
+                            <i class="folder icon" onclick="selDir('${strung}/')"></i>
+                            <div class="content">
+                                <div class="header">${args[0].dirs[i]}</div>
+                                <div class="description">Folder</div>
+                            </div>
+                        </div>
+                        `
                     }
-                    
-                    //Generate the folders
-                    let i = 0
-                    function next() {
-                        let cparent = dirs[i].split("/")
-                        let that = cparent[cparent.length-2]
-                        let parent = dirs[i].replace(that + "/", "")
-                        
-                        if (parent != "") {
-                            let dac = document.getElementById("dir" + parent)
-                            if (dac != null) {
-                                dac.innerHTML += `
-                                <div class="item">
-                                    <i id="ico${dirs[i]}" class="caret right icon" onclick='toggle("${dirs[i]}")'></i>
-                                    <div class="content">
-                                        <div class="header">${that}</div>
-                                        <div class="description">Foler</div>
-                                        <div id="click${dirs[i]}" style="display: none"><div class="list" id="dir${dirs[i]}"></div></div>
-                                    </div>
-                                </div>
-                                `
-                                dirs.splice(i, 1)
-                                i = 0
-                            } else {
-                                i++
-                                if (i >= dirs.length) { i = 0 }
-                            }
-                        } else {
-                            dirs.splice(i, 1)
-                            i = 0
-                        }
-
-                        if (dirs.length > 0) { setTimeout(next, 1) } else { continua() }
+                    for (let i = 0; i < args[0].files.length; i++) {
+                        dac.innerHTML += `
+                        <div class="item">
+                            <i class="file icon"></i>
+                            <div class="content">
+                                <div class="header">${args[0].files[i]}</div>
+                                <div class="description">File</div>
+                            </div>
+                        </div>
+                        `
                     }
-
-                    function continua() {
-                        for (let i = 0; i < args[0].length; i++) {
-                            let cfi = args[0][i].split("/")
-                            let that = cfi[cfi.length - 1]
-                            let dir = args[0][i].replace(that, "")
-                            let dac = document.getElementById("dir" + dir)
-                            if (dac != null) {
-                                dac.innerHTML += `
-                                <div class="item">
-                                    <i class="circle icon"></i>
-                                    <div class="content">
-                                        <div class="header">${that}</div>
-                                        <div class="description">File</div>
-                                    </div>
-                                </div>
-                                `
-                            } else {
-                                console.log("dir" + dir);
-                            }
-                        }
-                    }
-                    next()
                 }
             })
 
@@ -129,16 +111,36 @@
                 cmenuhide()
             }
 
+            function cnfi() {
+                let name = prompt('Name')
+                sock.emit('fs', LID, "nfi", DIR + name)
+                refresh()
+            }
+
+            function cnfo() {
+                let name = prompt('Name')
+                sock.emit('fs', LID, "nfo", DIR + name)
+                refresh()
+            }
+
+            function refresh() {
+                sock.emit('fs', LID, "list", DIR)
+            }
+
             function cmenu(e) {
                 let mnud = `
                 <div class="ui card" style="position: absolute; top: ${e.clientY}; left: ${e.clientX};width:12%">
-                    <button class="ui button">
+                    <button class="ui button" onclick="cnfi()">
                         <i class="file icon"></i>
                         Create new file
                     </button>
-                    <button class="ui button">
+                    <button class="ui button" onclick="cnfo()">
                         <i class="folder icon"></i>
                         Create new folder
+                    </button>
+                    <button class="ui button" onclick="refresh()">
+                        <i class="undo icon"></i>
+                        Refresh
                     </button>
                 </div>
                 `

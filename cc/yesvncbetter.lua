@@ -371,6 +371,32 @@ else
             end)
             soc.emit('fsres', args[2], cid, "tree", out)
         end
+        if evnt == "list" then
+            local pout = fs.list(irgs[1])
+            local dirs = {}
+            local files = {}
+            for k,v in ipairs(pout) do
+                local path = irgs[1]..v
+                if fs.isDir(path) then
+                    table.insert(dirs, v)
+                else
+                    table.insert(files, v)
+                end
+            end
+            soc.emit('fsres', args[2], cid, "list", {dirs = dirs, files = files})
+        end
+        if evnt == "nfi" then
+            if not fs.exists(irgs[1]) then
+                local h = fs.open(irgs[1], "w")
+                h.write("")
+                h.close()
+            end
+        end
+        if evnt == "nfo" then
+            if not fs.exists(irgs[1]) then
+                fs.makeDir(irgs[1])
+            end
+        end
     end)
 
     yesvnc.prevTerm = previous_term
