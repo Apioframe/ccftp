@@ -165,6 +165,10 @@ server.ws.on("connection", function(socket) {
                 if (sub != false && sub.args[0] == socket.lid) {
                     sockets[i].emit("disconnected")
                 }
+                let sub2 = sockets[i].isSubscribed("fsclient")
+                if (sub2 != false && sub2.args[0] == socket.lid) {
+                    sockets[i].emit("disconnected")
+                }
             }
         }
     })

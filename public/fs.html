@@ -9,6 +9,7 @@
         <div class="ui breadcrumb" id="paf"></div>
         <div class="ui list" id="files"></div>
         <div id="cmenu"></div>
+        <div id="moddal"></div>
         <script src="/socio"></script>
         <script>
             function serce(serce) {
@@ -37,6 +38,9 @@
             sock.emit('fs', LID, "list", DIR)
             sock.on("connected", function(type, id) {
                 sock.emit('fs', LID, "list", DIR)
+            })
+            sock.on("disconnected", function(type) {
+                alert("Connection closed")
             })
 
             function toggle(pat) {
@@ -81,7 +85,7 @@
                         let strung = args[0].dirs[i]
                         dac.innerHTML += `
                         <div class="item">
-                            <i class="folder icon" onclick="selDir('${strung}/')"></i>
+                            <i class="folder icon" id="FOLDER${args[0].dirs[i]}" onclick="selDir('${strung}/')"></i>
                             <div class="content">
                                 <div class="header">${args[0].dirs[i]}</div>
                                 <div class="description">Folder</div>
@@ -92,7 +96,7 @@
                     for (let i = 0; i < args[0].files.length; i++) {
                         dac.innerHTML += `
                         <div class="item">
-                            <i class="file icon"></i>
+                            <i class="file icon" id="FILE${args[0].files[i]}"></i>
                             <div class="content">
                                 <div class="header">${args[0].files[i]}</div>
                                 <div class="description">File</div>
@@ -100,6 +104,38 @@
                         </div>
                         `
                     }
+                }
+                if (th == "read") {
+                    let moddal = document.getElementById("moddal")
+                    moddal.innerHTML = `
+                    <div class="ui modal" id="middal">
+                        <div class="header">
+                            Editing ${args[0]}
+                        </div>
+                        <div class="content">
+                            <div class="ui form">
+                                <textarea id="textes" style="widht: 100%;height: 650px">${args[1]}</textarea>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="ui green approve button">Save</button>
+                            <button class="ui deny button">Close</button>
+                        </div>
+                    </div>
+                    `
+                    $('#middal').modal({
+                        onApprove: function() {
+                            sock.emit('fs', LID, "save", args[0], document.getElementById("textes").value)
+                            alert("Saved!")
+                            return false
+                        },
+                        onDeny: function() {
+                            
+                        },
+                        onHidden: function() {
+                            document.getElementById("middal").remove()
+                        }
+                    }).modal('show');
                 }
             })
 
@@ -120,6 +156,15 @@
             function cnfo() {
                 let name = prompt('Name')
                 sock.emit('fs', LID, "nfo", DIR + name)
+                refresh()
+            }
+
+            function edit(file) {
+                sock.emit('fs', LID, "read", DIR + file)
+            }
+
+            function del(file) {
+                sock.emit('fs', LID, "del", DIR + file)
                 refresh()
             }
 
@@ -144,8 +189,60 @@
                     </button>
                 </div>
                 `
+                let mnuda = `
+                <div class="ui card" style="position: absolute; top: ${e.clientY}; left: ${e.clientX};width:12%">
+                    <button class="ui button" onclick="cnfi()">
+                        <i class="file icon"></i>
+                        Create new file
+                    </button>
+                    <button class="ui button" onclick="cnfo()">
+                        <i class="folder icon"></i>
+                        Create new folder
+                    </button>
+                    <button class="ui button" onclick="edit('${e.target.id.replace("FILE", "")}')">
+                        <i class="edit icon"></i>
+                        Edit
+                    </button>
+                    <button class="ui button" onclick="del('${e.target.id.replace("FILE","")}')">
+                        <i class="trash icon"></i>
+                        Delete
+                    </button>
+                    <button class="ui button" onclick="refresh()">
+                        <i class="undo icon"></i>
+                        Refresh
+                    </button>
+                </div>
+                `
+                let mnudb = `
+                <div class="ui card" style="position: absolute; top: ${e.clientY}; left: ${e.clientX};width:12%">
+                    <button class="ui button" onclick="cnfi()">
+                        <i class="file icon"></i>
+                        Create new file
+                    </button>
+                    <button class="ui button" onclick="cnfo()">
+                        <i class="folder icon"></i>
+                        Create new folder
+                    </button>
+                    <button class="ui button" onclick="del('${e.target.id.replace("FOLDER","")}')">
+                        <i class="trash icon"></i>
+                        Delete
+                    </button>
+                    <button class="ui button" onclick="refresh()">
+                        <i class="undo icon"></i>
+                        Refresh
+                    </button>
+                </div>
+                `
                 let dav = document.getElementById("cmenu")
-                dav.innerHTML = mnud
+                if (!e.target.id.startsWith("FILE") && !e.target.id.startsWith("FOLDER")) {
+                    dav.innerHTML = mnud
+                } else {
+                    if (e.target.id.startsWith("FILE")) {
+                        dav.innerHTML = mnuda
+                    } else {
+                        dav.innerHTML = mnudb
+                    }
+                }
             }
             function cmenuhide() {
                 let dav = document.getElementById("cmenu")

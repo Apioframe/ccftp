@@ -397,6 +397,25 @@ else
                 fs.makeDir(irgs[1])
             end
         end
+        if evnt == "del" then
+            if fs.exists(irgs[1]) then
+                fs.delete(irgs[1])
+            end
+        end
+        if evnt == "read" then
+            if fs.exists(irgs[1]) then
+                local hand = fs.open(irgs[1], "r")
+                soc.emit('fsres', args[2], cid, "read", irgs[1], hand.readAll())
+                hand.close()
+            end
+        end
+        if evnt == "save" then
+            if fs.exists(irgs[1]) then
+                local hand = fs.open(irgs[1], "w")
+                hand.write(irgs[2])
+                hand.close()
+            end
+        end
     end)
 
     yesvnc.prevTerm = previous_term
