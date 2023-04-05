@@ -47,6 +47,9 @@
             let cont = document.getElementById('cont');
             cont.innerHTML = `
             On a cc/oc computer run:<br>
+            <input class="ui input" disabled="disabled" value="wget http://${window.location.host}/cc/EventHandler eh.lua"></input><br>
+            <input class="ui input" disabled="disabled" value="wget http://${window.location.host}/cc/socio socio.lua"></input><br>
+            <input class="ui input" disabled="disabled" value="wget http://${window.location.host}/cc/yesvncbetter yesvnc.lua"></input><br>
             <input class="ui input" disabled="disabled" value="yesvnc.lua ws://${window.location.hostname}:1011 ${LID}"></input><br>
             <a href="./fs?id=${LID}">Files</a><br>
             <div id="frim"><iframe id="frammo" src="/raw?id=${LID}&big=20" style="width:100%; height:100%; border:none; margin:0; padding:0; z-index:999999;"></iframe></div>
