@@ -40,7 +40,14 @@
                 sock.emit('fs', LID, "list", DIR)
             })
             sock.on("disconnected", function(type) {
-                alert("Connection closed")
+                $.toast({
+                    title: 'Disconnected',
+                    message: 'The computer disconnected',
+                    showProgress: 'bottom',
+                    lassProgress: 'blue',
+                    class: "red"
+                })
+                ;
             })
 
             function toggle(pat) {
@@ -126,7 +133,14 @@
                     $('#middal').modal({
                         onApprove: function() {
                             sock.emit('fs', LID, "save", args[0], document.getElementById("textes").value)
-                            alert("Saved!")
+                            $.toast({
+                                title: 'Saved',
+                                message: 'The file have been saved!',
+                                showProgress: 'bottom',
+                                classProgress: 'blue',
+                                class: "green"
+                            })
+                            ;
                             return false
                         },
                         onDeny: function() {
