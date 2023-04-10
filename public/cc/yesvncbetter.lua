@@ -424,7 +424,7 @@ else
     function a()
         local stat, err = pcall(taack)
         if yesvnc ~= nil then
-            print(err)
+            --print(err)
             a()
         else
             term.clear()
@@ -439,7 +439,7 @@ else
     function b()
         local stat, err = pcall(shell.run, "shell")
         if yesvnc ~= nil then
-            print(err)
+            --print(err)
             b()
         else
             term.clear()
@@ -454,7 +454,7 @@ else
     function c()
         local stat, err = pcall(soc.async, true)
         if yesvnc ~= nil then
-            print(err)
+            --print(err)
             c()
         else
             term.clear()

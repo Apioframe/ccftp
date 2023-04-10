@@ -3,8 +3,8 @@
         <title>YesVNC</title>
     </head>
     <body>
-        <canvas id="can" style="outline: black 3px solid;"></canvas>
-        <div id="dock" style="background-color: gray;width: 624px;height: 20px;outline: black solid 3px;"><button title="Terminate" onclick="terminato()">T</button></div>
+        <canvas id="can" style="outline: black solid 3px;"></canvas>
+        <div id="dock" style="background-color: gray;width: 624px;height: 20px;"><button title="Terminate" onclick="terminato()">T</button></div>
         <script src="/socio"></script>
         <script>
             var biggyityy = 13
@@ -43,9 +43,8 @@
             let can = document.getElementById('can')
             let context = can.getContext('2d')
             can.onclick = function(e) {
-                let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity)
+                let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity) - 1
                 let y = Math.floor((e.clientY - can.getBoundingClientRect().top) / biggyityy)
-                //console.log(x,y);
                 sock.emit('interact', LID, 'click', x, y)
             }
             can.setAttribute('tabindex', '0');
@@ -76,7 +75,7 @@
                 event.preventDefault()
             })
             can.addEventListener('wheel', function(e) {
-                let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity)
+                let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity) - 1
                 let y = Math.floor((e.clientY - can.getBoundingClientRect().top) / biggyityy)
                 if (e.wheelDelta > 0) {
                     sock.emit('interact', LID, 'scroll', -1, x, y)
@@ -179,26 +178,7 @@
                         } else {
                             context.fillText(dat.lines[i][ii], x, i * biggyityy+biggyityy)
                         }
-                        let priority = [
-                            ",",
-                            "(",
-                            ")",
-                            "[",
-                            "]",
-                            "{",
-                            "}",
-                            "'",
-                            ":",
-                            "<",
-                            ">",
-                            "=",
-                            "~"
-                        ]
-                        if (priority.includes(dat.lines[i][ii])) {
-                            x = x + biggyity+5//t.width
-                        } else {
-                            x = x + biggyity-1//t.width
-                        }
+                        x = x + biggyity
                     }
                 }
             })
