@@ -173,12 +173,10 @@ function decodeString(key, c)
     return out
 end
 
-local keys = generateKeyPairs()
-print(textutils.serialise(keys))
-local eac = encode(keys.publicKey, 127)
-print(eac)
-print(decode(keys.privateKey, eac))
-
-local eas = encodeString(keys.publicKey, "Hello, world!")
-print(eas)
-print(decodeString(keys.privateKey, eas))
+return {
+    generateKeyPairs = generateKeyPairs,
+    encode = encode,
+    decode = decode,
+    encodeString = encodeString,
+    decodeString = decodeString
+}
