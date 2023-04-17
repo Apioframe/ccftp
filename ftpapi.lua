@@ -4,7 +4,7 @@ local parts = 100
 
 function api.transmit(target, modem, port, handle)
     function sendData()
-        handle.seek("set", 1)
+        handle.seek("set", 0)
         while true do
             local part = handle.read(parts)
             if not part then break end
@@ -14,7 +14,7 @@ function api.transmit(target, modem, port, handle)
                 data = part
             })
         end
-        handle.seek("set", 1)
+        handle.seek("set", 0)
         local checksum = sga69(handle.readAll(), 32, 16)
         modem.transmit(port, port, {
             mode = "END",
