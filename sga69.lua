@@ -22,17 +22,11 @@ function hash(m, epochs, salt)
                 local q = ""
                 for i=#p,1,-1 do
                     q = q .. p:sub(i,i)
-                    if i % 1000 == 0 then
-                        os.sleep(0.1)
-                    end
                 end
                 nums[k] = tonumber(q)
             end
             for i=#nums,1,-1 do
                 nums[i] = nums[i] + salt + (nums[i-1] or nums[#nums])
-                if i % 1000 == 0 then
-                    os.sleep(0.1)
-                end
             end
         end
     end
