@@ -4,6 +4,7 @@ local parts = 100
 
 function api.transmit(target, modem, port, handle)
     function sendData()
+        handle.seek("set", 1)
         while true do
             local part = handle.read(parts)
             if not part then break end
@@ -49,6 +50,7 @@ function api.receive(modem, port)
                 })
                 break
             else
+                fs.delete(message.file)
                 modem.transmit(port, port, {
                     mode = "RESEND"
                 })
