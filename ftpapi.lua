@@ -14,7 +14,7 @@ function api.transmit(target, modem, port, handle)
             })
         end
         handle.seek("set", 1)
-        local checksum = sga69(handle.readAll())
+        local checksum = sga69(handle.readAll(), 32, 16)
         modem.transmit(port, port, {
             mode = "END",
             file = target,
@@ -41,7 +41,7 @@ function api.receive(modem, port)
             h.close()
         elseif message.mode == "END" then
             local h = fs.open(message.file, "rb")
-            local checksum = sga69(h.readAll())
+            local checksum = sga69(h.readAll(), 32, 16)
             h.close()
             if checksum == message.checksum then
                 modem.transmit(port, port, {
@@ -57,3 +57,5 @@ function api.receive(modem, port)
     end
     modem.close(port)
 end
+
+return api
