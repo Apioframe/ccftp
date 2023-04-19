@@ -49,6 +49,8 @@ local username = spi[1]
 local port = tonumber(spi[2])
 local id = math.random(1000, 9999)
 
+modem.open(port)
+
 function receive(filter, timeout)
     local event, side, channel, replyChannel, message, distance
     function m()
@@ -71,18 +73,55 @@ function receive(filter, timeout)
     return event, side, channel, replyChannel, message, distance
 end
 
+function ftpreceive()
+    local event, side, channel, replyChannel, message = receive(function(side, channel, replyChannel, message)
+        return (message.target == id)
+    end,5)
+    if message and (message.mode ~= "ERR") then
+        return true, message
+    else
+        if (message == nil) or (message.err == nil) then
+            message = {}
+            message.err = "Timed out"
+        end
+        return false, message.err
+    end
+end
+
 modem.transmit(port, port, {
     mode = "INFO",
     author = id
 })
 
-local event, side, channel, replyChannel, message = receive(function(side, channel, replyChannel, message)
+local mevent = receive(function(side, channel, replyChannel, message)
     return (message.target == id)
 end,5)
 
-if event ~= nil then
+function commandHandler()
+    local dir = "/"
+    while true do
+        io.write(username.."@"..port.."#"..dir..">")
+        local cmd = io.read()
+        local parsed = mysplit(cmd, " ")
+    end
+end
+
+if mevent ~= nil then
     io.write(username.."@"..port.."'s password: ")
     local password = hiddenread()
+    print()
+    modem.transmit(port, port, {
+        mode = "AUTH",
+        username = username,
+        password = password,
+        author = id
+    })
+    local ok, data = ftpreceive()
+    if ok then
+        commandHandler()
+    else
+        print(data)
+    end
 else
     print("Timed out")
 end
