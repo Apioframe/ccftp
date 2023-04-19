@@ -103,13 +103,36 @@ function commandHandler()
         io.write(username.."@"..port.."#"..dir..">")
         local cmd = io.read()
         local parsed = mysplit(cmd, " ")
+        if parsed[1] == "exit" then
+            print("Connection closed")
+            return
+        elseif parsed[1] == "ping" then
+            modem.transmit(port, port, {
+                mode = "INFO",
+                author = id
+            })
+
+            local mmevent = receive(function(side, channel, replyChannel, message)
+                return (message.target == id)
+            end,5)
+            if mmevent ~= nil then
+                print("Ping: IDKms")
+            else
+                print("Connection closed")
+                return
+            end
+        end
     end
 end
 
 if mevent ~= nil then
     io.write(username.."@"..port.."'s password: ")
     local password = hiddenread()
-    print()
+    local w,h = term.getSize()
+    local x,y = term.getCursorPos()
+    if h+1 == y then
+        print()
+    end
     modem.transmit(port, port, {
         mode = "AUTH",
         username = username,
