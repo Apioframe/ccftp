@@ -73,9 +73,9 @@ function receive(filter, timeout)
     return event, side, channel, replyChannel, message, distance
 end
 
-function ftpreceive()
+function ftpreceive(filter)
     local event, side, channel, replyChannel, message = receive(function(side, channel, replyChannel, message)
-        return (message.target == id)
+        return (message.target == id) and filter(side, channel, replyChannel, message)
     end,5)
     if message and (message.mode ~= "ERR") then
         return true, message
@@ -96,6 +96,8 @@ modem.transmit(port, port, {
 local mevent = receive(function(side, channel, replyChannel, message)
     return (message.target == id)
 end,5)
+
+local authKey = ""
 
 function commandHandler()
     local dir = "/"
@@ -121,6 +123,25 @@ function commandHandler()
                 print("Connection closed")
                 return
             end
+        elseif parsed[1] == "cd" then
+            dir = "/"..fs.combine(dir, parsed[2] and parsed[2] or "")
+        elseif parsed[1] == "ls" then
+            modem.transmit(port, port, {
+                mode = "LS",
+                dir = dir,
+                token = authKey,
+                author = id
+            })
+            local ok, data = ftpreceive(function(side, channel, replyChannel, message)
+                return (message.mode == "LS") or (message.mode == "ERR")
+            end)
+            if ok then
+                for k,v in ipairs(data.data) do
+                    print(v)
+                end
+            else
+                print(data)
+            end
         end
     end
 end
@@ -139,8 +160,11 @@ if mevent ~= nil then
         password = password,
         author = id
     })
-    local ok, data = ftpreceive()
+    local ok, data = ftpreceive(function(side, channel, replyChannel, message) 
+        return (message.mode == "AUTH") or (message.mode == "ERR")
+    end)
     if ok then
+        authKey = data.token
         commandHandler()
     else
         print(data)

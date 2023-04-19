@@ -25,7 +25,7 @@ end
 local authed = {}
 
 function getUsernameFromToken(token)
-    for k,v in ipairs(authed) do
+    for k,v in pairs(authed) do
         if v == token then
             return k
         end
@@ -55,6 +55,29 @@ while true do
             mode = "HELLO",
             target = message.author
         })
+    elseif message.mode == "LS" then
+        if getUsernameFromToken(message.token) ~= nil then
+            if fs.exists(message.dir) and fs.isDir(message.dir) then
+                local dirr = fs.list(message.dir)
+                modem.transmit(port, port, {
+                    mode = "LS",
+                    data = dirr,
+                    target = message.author
+                })
+            else
+                modem.transmit(port, port, {
+                    mode = "ERR",
+                    err = "Dir not exists",
+                    target = message.author
+                })
+            end
+        else
+            modem.transmit(port, port, {
+                mode = "ERR",
+                err = "Not authenticated",
+                target = message.author
+            })
+        end
     else
         modem.transmit(port, port, {
             mode = "ERR",
