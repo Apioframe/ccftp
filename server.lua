@@ -1,6 +1,5 @@
 --CONFIG
 local port = 2222
-local passive_port = 2223
 local users = {
     ["root"]={
         password = "root"
@@ -8,7 +7,7 @@ local users = {
 }
 --CODE
 local modem = peripheral.find("modem")
-local api = require("ftpapi")
+local sga69 = require("sga69")
 
 modem.open(port)
 
@@ -31,6 +30,8 @@ function getUsernameFromToken(token)
         end
     end
 end
+
+local checksums = {}
 
 while true do
     local event, side, channel, replyChannel, message, distance = os.pullEvent("modem_message")
@@ -70,6 +71,80 @@ while true do
                     err = "Dir not exists",
                     target = message.author
                 })
+            end
+        else
+            modem.transmit(port, port, {
+                mode = "ERR",
+                err = "Not authenticated",
+                target = message.author
+            })
+        end
+    elseif message.mode == "PUT" then
+        if getUsernameFromToken(message.token) ~= nil then
+            if not fs.exists(message.file) then
+                checksums[message.file] = {}
+                modem.transmit(port, port, {
+                    mode = "PUT",
+                    target = message.author
+                })
+            else
+                modem.transmit(port, port, {
+                    mode = "ERR",
+                    err = "File already exists",
+                    target = message.author
+                })
+            end
+        else
+            modem.transmit(port, port, {
+                mode = "ERR",
+                err = "Not authenticated",
+                target = message.author
+            })
+        end
+    elseif message.mode == "DATA" then
+        if getUsernameFromToken(message.token) ~= nil then
+            local h = fs.open(message.file, "ab")
+            h.write(message.data)
+            table.insert(checksums[message.file], {
+                data=message.data,
+                globall=message.hash,
+                msgprevHash=message.prevHash,
+            })
+            h.close()
+        else
+            modem.transmit(port, port, {
+                mode = "ERR",
+                err = "Not authenticated",
+                target = message.author
+            })
+        end
+    elseif message.mode == "END" then
+        if getUsernameFromToken(message.token) ~= nil then
+            local resend = false
+            local prevHash = ""
+            print("Verifying...")
+            for k,v in ipairs(checksums[message.file]) do
+                local hash = sga69(v.data, 32, 16)
+                if (hash ~= v.globall or prevHash ~= v.msgprevHash) then
+                    resend = true
+                    break
+                end
+                prevHash = hash
+                if k % 100 == 0 then
+                    os.sleep(0.1)
+                end
+            end
+            if not resend then
+                modem.transmit(port, port, {
+                    mode = "DONE",
+                    target = message.author
+                })
+            else
+                modem.transmit(port, port, {
+                    mode = "RESEND",
+                    target = message.author
+                })
+                resend = false
             end
         else
             modem.transmit(port, port, {

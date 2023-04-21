@@ -6,6 +6,7 @@
 ]]
 
 function hash(m, epochs, salt)
+    m = tostring(m)
     local nums = {}
     for i=1,#m,1 do
         local ch = m:sub(i,i)

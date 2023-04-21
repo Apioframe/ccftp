@@ -1,6 +1,6 @@
 local args = {...}
 local modem = peripheral.find("modem")
-local api = require("ftpapi")
+local sga69 = require("sga69")
 
 function mysplit (inputstr, sep)
     if sep == nil then
@@ -99,6 +99,56 @@ end,5)
 
 local authKey = ""
 
+function uploadFile(file, target)
+    local handle = fs.open(file, "rb")
+    local function sendFile()
+        local prevHash = ""
+        local fend = handle.seek("end")
+        handle.seek("set", 0)
+        local i = 1
+        while true do
+            local part = handle.read(parts)
+            if not part then break end
+            local hash = sga69(part, 32, 16)
+            modem.transmit(port, port, {
+                mode = "DATA",
+                token = authKey,
+                file = target,
+                data = part,
+                hash = hash,
+                prevHash = prevHash,
+                author = id
+            })
+            prevHash = hash
+            if i % 50 == 0 then
+                local percent = (handle.seek("cur") / fend) * 100
+                print((math.floor(percent*100)/100).."% ("..handle.seek("cur").."/"..fend..")")
+                os.sleep(0.1)
+            end
+            i = i + 1
+        end
+        os.sleep(0.1)
+        local percent = (handle.seek("cur") / fend) * 100
+        print((math.floor(percent*100)/100).."% ("..handle.seek("cur").."/"..fend..")")
+        modem.transmit(port, port, {
+            mode = "END",
+            token = authKey,
+            file = target,
+            author = id
+        })
+        print("Verifying...")
+        local ok, data = ftpreceive(function(side, channel, replyChannel, message)
+            return (message.mode == "DONE") or (message.mode == "RESEND")
+        end)
+        if data.mode == "RESEND" then
+            print("Resending...")
+            sendFile()
+        end
+    end
+    sendFile()
+    handle.close()
+end
+
 function commandHandler()
     local dir = "/"
     while true do
@@ -124,7 +174,11 @@ function commandHandler()
                 return
             end
         elseif parsed[1] == "cd" then
-            dir = "/"..fs.combine(dir, parsed[2] and parsed[2] or "")
+            if #parsed == 2 then 
+                dir = "/"..fs.combine(dir, parsed[2] and parsed[2] or "")
+            else
+                print("Usage: cd <path>")
+            end
         elseif parsed[1] == "ls" then
             modem.transmit(port, port, {
                 mode = "LS",
@@ -141,6 +195,30 @@ function commandHandler()
                 end
             else
                 print(data)
+            end
+        elseif parsed[1] == "put" then
+            if #parsed == 3 then 
+                if fs.exists(parsed[2]) then
+                    modem.transmit(port, port, {
+                        mode = "PUT",
+                        file = fs.combine(dir, parsed[3]),
+                        token = authKey,
+                        author = id
+                    })
+                    local ok, data = ftpreceive(function(side, channel, replyChannel, message)
+                        return (message.mode == "PUT") or (message.mode == "ERR")
+                    end)
+                    if ok then
+                        print("Uploading accepted...")
+                        uploadFile(parsed[2], parsed[3])
+                    else
+                        print(data)
+                    end
+                else
+                    print("File not exists")
+                end
+            else
+                print("Usage: put <localpath> <targetpath>")
             end
         end
     end
