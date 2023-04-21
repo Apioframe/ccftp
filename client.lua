@@ -220,6 +220,25 @@ function commandHandler()
             else
                 print("Usage: put <localpath> <targetpath>")
             end
+        elseif parsed[1] == "del" then
+            if #parsed == 2 then 
+                modem.transmit(port, port, {
+                    mode = "DEL",
+                    file = fs.combine(dir, parsed[2]),
+                    token = authKey,
+                    author = id
+                })
+                local ok, data = ftpreceive(function(side, channel, replyChannel, message)
+                    return (message.mode == "DEL") or (message.mode == "ERR")
+                end)
+                if ok then
+                    print("Success")
+                else
+                    print(data)
+                end
+            else
+                print("Usage: del <path>")
+            end
         end
     end
 end

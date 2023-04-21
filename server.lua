@@ -118,6 +118,28 @@ while true do
                 target = message.author
             })
         end
+    elseif message.mode == "DEL" then
+        if getUsernameFromToken(message.token) ~= nil then
+            if fs.exists(message.file) then
+                fs.delete(message.file)
+                modem.transmit(port, port, {
+                    mode = "DEL",
+                    target = message.author
+                })
+            else
+                modem.transmit(port, port, {
+                    mode = "ERR",
+                    err = "File not exists",
+                    target = message.author
+                })
+            end
+        else
+            modem.transmit(port, port, {
+                mode = "ERR",
+                err = "Not authenticated",
+                target = message.author
+            })
+        end
     elseif message.mode == "END" then
         if getUsernameFromToken(message.token) ~= nil then
             local resend = false
