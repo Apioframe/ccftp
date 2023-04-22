@@ -2,6 +2,7 @@ local args = {...}
 local modem = peripheral.find("modem")
 local sga69 = require("sga69")
 
+local parts = 500
 function mysplit (inputstr, sep)
     if sep == nil then
             sep = "%s"
@@ -155,6 +156,7 @@ function uploadFile(file, target)
 end
 
 function listenFile(target, fill)
+    fs.delete(target)
     local hashs = {}
     while true do
         local ok, data = ftpreceive(function(side, channel, replyChannel, message)

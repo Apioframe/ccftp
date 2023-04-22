@@ -68,10 +68,13 @@ if fi == "server" then
     end
 
     local password = hiddenread()
+    print("How many characters/packet do you want")
+    local cpp = tonumber(io.read())
     print("Configuring...")
     local confi = {
         port = port,
-        users = {}
+        users = {},
+        parts = cpp
     }
     confi.users[username] = {
         password = password,

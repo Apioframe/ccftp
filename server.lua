@@ -5,6 +5,7 @@ local conf = fs.open("ftp.conf", "r")
 local confd = textutils.unserialise(conf.readAll())
 local port = confd.port
 local users = confd.users
+local parts = confd.parts
 conf.close()
 
 modem.open(port)
