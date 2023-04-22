@@ -1,13 +1,11 @@
---CONFIG
-local port = 2222
-local users = {
-    ["root"]={
-        password = "root"
-    }
-}
---CODE
 local modem = peripheral.find("modem")
 local sga69 = require("sga69")
+
+local conf = fs.open("ftp.conf", "r")
+local confd = textutils.unserialise(conf.readAll())
+local port = confd.port
+local users = confd.users
+conf.close()
 
 modem.open(port)
 

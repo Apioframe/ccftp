@@ -44,6 +44,11 @@ function hiddenread()
     return input
 end
 
+if #args ~= 1 then
+    print("Usage: ftpclient <username@port>")
+    return
+end
+
 local spi = mysplit(args[1], "@")
 local username = spi[1]
 local port = tonumber(spi[2])
@@ -305,6 +310,15 @@ function commandHandler()
             else
                 print("Usage: get <targetpath> <localpath>")
             end
+        elseif parsed[1] == "help" then
+            print("Commands: ")
+            print("exit: exits the program")
+            print("ping: shows the ping to the server (currently not working)")
+            print("cd <directory>: goes into the directory")
+            print("ls: list files in the directory")
+            print("put <localpath> <targetpath>: uploads a file to the server")
+            print("del <path>: deltes a file from the server")
+            print("get <targetpath> <localpath>: gets a file from the server")
         end
     end
 end
