@@ -10,4 +10,5 @@ If you want to use the ftpserver while a console is running rename the `ftpserve
 
 # Warning:
 Currently the encryption system does NOT work, so don't use a "secure" password
+
 With a sniffer others can easily get your password
