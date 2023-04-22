@@ -149,6 +149,66 @@ function uploadFile(file, target)
     handle.close()
 end
 
+function listenFile(target, fill)
+    local hashs = {}
+    while true do
+        local ok, data = ftpreceive(function(side, channel, replyChannel, message)
+            return (message.mode == "DATA") or (message.mode == "END") or (message.mode == "PERCENT")
+        end)
+        if data.mode == "DATA" then
+            local h = fs.open(target, "ab")
+            h.write(data.data)
+            table.insert(hashs, {
+                data=data.data,
+                globall=data.hash,
+                msgprevHash=data.prevHash,
+            })
+            h.close()
+        elseif data.mode == "PERCENT" then
+            print(data.percent)
+        elseif data.mode == "END" then
+            local resend = false
+            local prevHash = ""
+            print("Verifying...")
+            for k,v in ipairs(hashs) do
+                local hash = sga69(v.data, 32, 16)
+                if (hash ~= v.globall or prevHash ~= v.msgprevHash) then
+                    resend = true
+                    break
+                end
+                prevHash = hash
+                if k % 100 == 0 then
+                    os.sleep(0.1)
+                end
+            end
+            if not resend then
+                break
+            else
+                sendGet(fill, target)
+                resend = false
+            end
+        end
+    end
+end
+
+function sendGet(fil, tget)
+    modem.transmit(port, port, {
+        mode = "GET",
+        file = fil,
+        token = authKey,
+        author = id
+    })
+    local ok, data = ftpreceive(function(side, channel, replyChannel, message)
+        return (message.mode == "GET") or (message.mode == "ERR")
+    end)
+    if ok then
+        print("Waiting for file transfer...")
+        listenFile(tget, fil)
+    else
+        print(data)
+    end
+end
+
 function commandHandler()
     local dir = "/"
     while true do
@@ -238,6 +298,12 @@ function commandHandler()
                 end
             else
                 print("Usage: del <path>")
+            end
+        elseif parsed[1] == "get" then
+            if #parsed == 3 then 
+                sendGet(fs.combine(dir, parsed[2]), parsed[3])
+            else
+                print("Usage: get <targetpath> <localpath>")
             end
         end
     end
