@@ -7,11 +7,11 @@ local branch = "main"
 local files = {
     client = {
         ["client.lua"] = "ftpclient.lua",
-        ["sga69"] = "sga69.lua",
+        ["sga69.lua"] = "sga69.lua",
     },
     server = {
         ["server.lua"] = "ftpserver.lua",
-        ["sga69"] = "sga69.lua",
+        ["sga69.lua"] = "sga69.lua",
         ["servershell.lua"] = "ftpservershell.lua",
     }
 }
