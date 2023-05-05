@@ -141,6 +141,28 @@ function main()
                     target = message.author
                 })
             end
+        elseif message.mode == "MKDIR" then
+            if getUsernameFromToken(message.token) ~= nil then
+                if not fs.exists(message.file) then
+                    fs.makeDir(message.file)
+                    modem.transmit(port, port, {
+                        mode = "MKDIR",
+                        target = message.author
+                    })
+                else
+                    modem.transmit(port, port, {
+                        mode = "ERR",
+                        err = "File already exists",
+                        target = message.author
+                    })
+                end
+            else
+                modem.transmit(port, port, {
+                    mode = "ERR",
+                    err = "Not authenticated",
+                    target = message.author
+                })
+            end
         elseif message.mode == "END" then
             if getUsernameFromToken(message.token) ~= nil then
                 local resend = false

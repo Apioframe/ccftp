@@ -306,6 +306,25 @@ function commandHandler()
             else
                 print("Usage: del <path>")
             end
+        elseif parsed[1] == "mkdir" then
+            if #parsed == 2 then 
+                modem.transmit(port, port, {
+                    mode = "MKDIR",
+                    file = fs.combine(dir, parsed[2]),
+                    token = authKey,
+                    author = id
+                })
+                local ok, data = ftpreceive(function(side, channel, replyChannel, message)
+                    return (message.mode == "MKDIR") or (message.mode == "ERR")
+                end)
+                if ok then
+                    print("Success")
+                else
+                    print(data)
+                end
+            else
+                print("Usage: mkdir <path>")
+            end
         elseif parsed[1] == "get" then
             if #parsed == 3 then 
                 sendGet(fs.combine(dir, parsed[2]), parsed[3])
@@ -320,6 +339,7 @@ function commandHandler()
             print("ls: list files in the directory")
             print("put <localpath> <targetpath>: uploads a file to the server")
             print("del <path>: deltes a file from the server")
+            print("mkdir <directory>: creates a directory")
             print("get <targetpath> <localpath>: gets a file from the server")
         end
     end
