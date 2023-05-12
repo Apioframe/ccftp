@@ -2,7 +2,7 @@
 Ftp for computercraft
 
 # How to install:
-Run `wget run https://raw.githubusercontent.com/a/ccftp/main/installer.lua`
+Run `wget run https://raw.githubusercontent.com/Apioframe/ccftp/main/installer.lua`
 
 If you want to start the ftp by default rename the `ftpserver.lua` to `startup.lua`
 
