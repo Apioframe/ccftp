@@ -1,0 +1,66 @@
+<html>
+    <head>
+        <title>YesVNC</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="/gui">
+        <script src="/guijs"></script>
+    </head>
+    <body style="font-family: lato;background-color: #36393F;">
+        <div style="position: absolute; top: 50%; left: 50%; width: 50%; transform: translate(-50%, -50%); opacity: 0.8; background-color: #f4f4f4;">
+            <div style="background-color: #0072c6; color: #fff; padding: 20px;">
+              <div class="header">Welcome at YesVNC!</div>
+              <p>We really excited to see you!</p>
+            </div>
+            <div id="cont" style="padding: 30px; background-color: #f4f4f4;text-align: center;">
+                
+            </div>
+        </div>
+        <script src="/socio"></script>
+        <script>
+            function serce(serce) {
+                let out = {}
+                serce = serce.replace("?", "")
+                let spi = serce.split("&")
+                for (let i = 0; i < spi.length; i++) {
+                    let spa = spi[i].split("=")
+                    out[spa[0]] = spa[1]
+                }
+                return out
+            }
+            function generateString(len) {
+                let out = ""
+                //every lowercase character, number, uppercase character
+                let chars = "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                for (let i = 0; i < len; i++) {
+                    out += chars[Math.floor(Math.random() * chars.length)]
+                }
+                return out
+            }
+            var LID = generateString(32)
+            let vdi = serce(window.location.search).id
+            if (vdi != undefined && vdi != "") {
+                LID = vdi
+            }
+
+            let cont = document.getElementById('cont');
+            cont.innerHTML = `
+            On a cc/oc computer run:<br>
+            <input class="ui input" disabled="disabled" value="wget http://${window.location.host}/cc/EventHandler eh.lua"></input><br>
+            <input class="ui input" disabled="disabled" value="wget http://${window.location.host}/cc/socio socio.lua"></input><br>
+            <input class="ui input" disabled="disabled" value="wget http://${window.location.host}/cc/yesvncbetter yesvnc.lua"></input><br>
+            <input class="ui input" disabled="disabled" value="yesvnc.lua ws://${window.location.hostname}:1011 ${LID}"></input><br>
+            <a href="./fs?id=${LID}">Files</a><br>
+            <div id="frim"><iframe id="frammo" src="/raw?id=${LID}&big=20" style="width:100%; height:100%; border:none; margin:0; padding:0; z-index:999999;"></iframe></div>
+            `
+            let iframe = document.getElementById('frammo');
+            let container = document.getElementById('frim');
+
+            setInterval(function() {
+                container.style.width = iframe.contentWindow.document.body.scrollWidth + 'px';
+                container.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+            },500)
+        </script>
+    </body>
+</html>

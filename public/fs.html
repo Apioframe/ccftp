@@ -1,0 +1,267 @@
+<html>
+    <head>
+        <title>YesVNC Files</title>
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.0/dist/semantic.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.0/dist/semantic.min.js"></script>
+    </head>
+    <body>
+        <div class="ui breadcrumb" id="paf"></div>
+        <div class="ui list" id="files"></div>
+        <div id="cmenu"></div>
+        <div id="moddal"></div>
+        <script src="/socio"></script>
+        <script>
+            function serce(serce) {
+                let out = {}
+                serce = serce.replace("?", "")
+                let spi = serce.split("&")
+                for (let i = 0; i < spi.length; i++) {
+                    let spa = spi[i].split("=")
+                    out[spa[0]] = spa[1]
+                }
+                return out
+            }
+            let serced = serce(window.location.search)
+            let LID = serced.id
+            let DIR = serced.dir
+            if (LID == undefined) {
+                window.location.href = "/"
+            } else {
+                if (DIR == undefined) {
+                    window.location.href = "/fs?id=" + LID + "&dir=/"
+                }
+            }
+
+            let sock = new Socio("ws://" + window.location.hostname + ":1011")
+            sock.emit("subscribe", "fsclient", LID)
+            sock.emit('fs', LID, "list", DIR)
+            sock.on("connected", function(type, id) {
+                sock.emit('fs', LID, "list", DIR)
+            })
+            sock.on("disconnected", function(type) {
+                $.toast({
+                    title: 'Disconnected',
+                    message: 'The computer disconnected',
+                    showProgress: 'bottom',
+                    classProgress: 'blue',
+                    class: "red"
+                })
+                ;
+            })
+
+            function toggle(pat) {
+                let pit = document.getElementById("click"+pat)
+                let put = document.getElementById("ico"+pat)
+                if (pit.style.display == "none") {
+                    pit.style.display = "block"
+                    put.classList.replace("right", "down")
+                } else {
+                    pit.style.display = "none"
+                    put.classList.replace("down", "right")
+                }
+            }
+
+            function devider() {
+                let piff = document.getElementById("paf")
+                piff.innerHTML = `<a class="divider" style="cursor: pointer" onclick="selDir('/', true)"> / </a>`
+                let spa = DIR.split("/")
+                let dar = "/"
+                for (let i = 1; i < spa.length-1; i++) {
+                    dar = dar + spa[i] + "/"
+                    piff.innerHTML += `
+                    <a class="section" style="cursor: pointer" onclick="selDir('${dar}', true)">${spa[i]}</a>
+                    <div class="divider"> / </div>
+                    `
+                }
+            }
+            devider()
+
+            function selDir(strung, force) {
+                window.history.pushState({"html": document.body.innerHTML, "pageTitle": document.title},"","http://" + window.location.host + `/fs?id=${LID}&dir=${!force ? DIR : ""}${strung}`)
+                DIR = (!force ? DIR : "") + strung
+                devider()
+                refresh()
+            }
+
+            sock.on('fsres', function(th, ...args) {
+                if (th == "list") {
+                    let dac = document.getElementById("files")
+                    dac.innerHTML = ""
+                    for (let i = 0; i < args[0].dirs.length; i++) {
+                        let strung = args[0].dirs[i]
+                        dac.innerHTML += `
+                        <div class="item">
+                            <i class="folder icon" id="FOLDER${args[0].dirs[i]}" onclick="selDir('${strung}/')"></i>
+                            <div class="content">
+                                <div class="header">${args[0].dirs[i]}</div>
+                                <div class="description">Folder</div>
+                            </div>
+                        </div>
+                        `
+                    }
+                    for (let i = 0; i < args[0].files.length; i++) {
+                        dac.innerHTML += `
+                        <div class="item">
+                            <i class="file icon" id="FILE${args[0].files[i]}"></i>
+                            <div class="content">
+                                <div class="header">${args[0].files[i]}</div>
+                                <div class="description">File</div>
+                            </div>
+                        </div>
+                        `
+                    }
+                }
+                if (th == "read") {
+                    let moddal = document.getElementById("moddal")
+                    moddal.innerHTML = `
+                    <div class="ui modal" id="middal">
+                        <div class="header">
+                            Editing ${args[0]}
+                        </div>
+                        <div class="content">
+                            <div class="ui form">
+                                <textarea id="textes" style="widht: 100%;height: 650px">${args[1]}</textarea>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="ui green approve button">Save</button>
+                            <button class="ui deny button">Close</button>
+                        </div>
+                    </div>
+                    `
+                    $('#middal').modal({
+                        onApprove: function() {
+                            sock.emit('fs', LID, "save", args[0], document.getElementById("textes").value)
+                            $.toast({
+                                title: 'Saved',
+                                message: 'The file have been saved!',
+                                showProgress: 'bottom',
+                                classProgress: 'blue',
+                                class: "green"
+                            })
+                            ;
+                            return false
+                        },
+                        onDeny: function() {
+                            
+                        },
+                        onHidden: function() {
+                            document.getElementById("middal").remove()
+                        }
+                    }).modal('show');
+                }
+            })
+
+            document.oncontextmenu = function(e) {
+                e.preventDefault();
+                cmenu(e)
+            }
+            document.onclick = function(e) {
+                cmenuhide()
+            }
+
+            function cnfi() {
+                let name = prompt('Name')
+                sock.emit('fs', LID, "nfi", DIR + name)
+                refresh()
+            }
+
+            function cnfo() {
+                let name = prompt('Name')
+                sock.emit('fs', LID, "nfo", DIR + name)
+                refresh()
+            }
+
+            function edit(file) {
+                sock.emit('fs', LID, "read", DIR + file)
+            }
+
+            function del(file) {
+                sock.emit('fs', LID, "del", DIR + file)
+                refresh()
+            }
+
+            function refresh() {
+                sock.emit('fs', LID, "list", DIR)
+            }
+
+            function cmenu(e) {
+                let mnud = `
+                <div class="ui card" style="position: absolute; top: ${e.clientY}; left: ${e.clientX};width:12%">
+                    <button class="ui button" onclick="cnfi()">
+                        <i class="file icon"></i>
+                        Create new file
+                    </button>
+                    <button class="ui button" onclick="cnfo()">
+                        <i class="folder icon"></i>
+                        Create new folder
+                    </button>
+                    <button class="ui button" onclick="refresh()">
+                        <i class="undo icon"></i>
+                        Refresh
+                    </button>
+                </div>
+                `
+                let mnuda = `
+                <div class="ui card" style="position: absolute; top: ${e.clientY}; left: ${e.clientX};width:12%">
+                    <button class="ui button" onclick="cnfi()">
+                        <i class="file icon"></i>
+                        Create new file
+                    </button>
+                    <button class="ui button" onclick="cnfo()">
+                        <i class="folder icon"></i>
+                        Create new folder
+                    </button>
+                    <button class="ui button" onclick="edit('${e.target.id.replace("FILE", "")}')">
+                        <i class="edit icon"></i>
+                        Edit
+                    </button>
+                    <button class="ui button" onclick="del('${e.target.id.replace("FILE","")}')">
+                        <i class="trash icon"></i>
+                        Delete
+                    </button>
+                    <button class="ui button" onclick="refresh()">
+                        <i class="undo icon"></i>
+                        Refresh
+                    </button>
+                </div>
+                `
+                let mnudb = `
+                <div class="ui card" style="position: absolute; top: ${e.clientY}; left: ${e.clientX};width:12%">
+                    <button class="ui button" onclick="cnfi()">
+                        <i class="file icon"></i>
+                        Create new file
+                    </button>
+                    <button class="ui button" onclick="cnfo()">
+                        <i class="folder icon"></i>
+                        Create new folder
+                    </button>
+                    <button class="ui button" onclick="del('${e.target.id.replace("FOLDER","")}')">
+                        <i class="trash icon"></i>
+                        Delete
+                    </button>
+                    <button class="ui button" onclick="refresh()">
+                        <i class="undo icon"></i>
+                        Refresh
+                    </button>
+                </div>
+                `
+                let dav = document.getElementById("cmenu")
+                if (!e.target.id.startsWith("FILE") && !e.target.id.startsWith("FOLDER")) {
+                    dav.innerHTML = mnud
+                } else {
+                    if (e.target.id.startsWith("FILE")) {
+                        dav.innerHTML = mnuda
+                    } else {
+                        dav.innerHTML = mnudb
+                    }
+                }
+            }
+            function cmenuhide() {
+                let dav = document.getElementById("cmenu")
+                dav.innerHTML = ""
+            }
+        </script>
+    </body>
+</html>

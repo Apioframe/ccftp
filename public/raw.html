@@ -1,0 +1,187 @@
+<html>
+    <head>
+        <title>YesVNC</title>
+    </head>
+    <body>
+        <canvas id="can" style="outline: black solid 3px;"></canvas>
+        <div id="dock" style="background-color: gray;width: 624px;height: 20px;"><button title="Terminate" onclick="terminato()">T</button></div>
+        <script src="/socio"></script>
+        <script>
+            var biggyityy = 13
+            var biggyity
+            let vargy = serce(window.location.search).big
+            if (vargy != undefined && vargy != "") {
+                biggyityy = Number(vargy)
+            }
+            function generateString(len) {
+                let out = ""
+                //every lowercase character, number, uppercase character
+                let chars = "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                for (let i = 0; i < len; i++) {
+                    out += chars[Math.floor(Math.random() * chars.length)]
+                }
+                return out
+            }
+
+            function serce(serce) {
+                let out = {}
+                serce = serce.replace("?", "")
+                let spi = serce.split("&")
+                for (let i = 0; i < spi.length; i++) {
+                    let spa = spi[i].split("=")
+                    out[spa[0]] = spa[1]
+                }
+                return out
+            }
+
+            var LID = generateString(32)
+            let vdi = serce(window.location.search).id
+            if (vdi != undefined && vdi != "") {
+                LID = vdi
+            }
+
+            let can = document.getElementById('can')
+            let context = can.getContext('2d')
+            can.onclick = function(e) {
+                let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity) - 1
+                let y = Math.floor((e.clientY - can.getBoundingClientRect().top) / biggyityy)
+                sock.emit('interact', LID, 'click', x, y)
+            }
+            can.setAttribute('tabindex', '0');
+            let isShifted = false
+            can.addEventListener('keyup', function(event) {
+                if (event.key == "Shift") {
+                    isShifted = false
+                }
+            })
+            can.addEventListener('keydown', function(event) {
+                let tt = {
+                    "control": "leftCtrl",
+                    "arrowup": "up",
+                    "arrowdown": "down",
+                    "arrowleft": "left",
+                    "arrowright": "right"
+                }
+
+                let k = event.key.toLocaleLowerCase()
+                //console.log(k);
+                if (tt[k] != undefined) {
+                    k = tt[k]
+                }
+                sock.emit('interact', LID, 'keydown', isShifted ? k.toUpperCase() : k)
+                if (event.key == "Shift") {
+                    isShifted = true
+                }
+                event.preventDefault()
+            })
+            can.addEventListener('wheel', function(e) {
+                let x = Math.floor((e.clientX - can.getBoundingClientRect().left) / biggyity) - 1
+                let y = Math.floor((e.clientY - can.getBoundingClientRect().top) / biggyityy)
+                if (e.wheelDelta > 0) {
+                    sock.emit('interact', LID, 'scroll', -1, x, y)
+                } else {
+                    sock.emit('interact', LID, 'scroll', 1, x, y)
+                }
+            })
+
+            function terminato() {
+                sock.emit('interact', LID, 'terminate')
+            }
+
+            let sock = new Socio("ws://" + window.location.hostname + ":1011")
+            sock.emit("subscribe", "screen", LID)
+            sock.on("connected", function(type, id) {
+                //toast("Connected", "Connected (non encrypted) to #" + id + " (" + type + ")")
+                //scr()
+            })
+            sock.on("disconnected", function() {
+                helloed = false
+                clr()
+                context.fillStyle = "white"
+                let mes = context.measureText("No connection")
+                context.fillText("No connection",(can.width/2)-(mes.width/2),can.height/2)
+            })
+            sock.emit('ping', LID, "screen")
+
+            let storage = {}
+            let colorTable = {
+                1: "white",
+                2: "orange",
+                4: "magenta",
+                8: "lightblue",
+                16: "yellow",
+                32: "lime",
+                64: "pink",
+                128: "gray",
+                256: "lightgray",
+                512: "cyan",
+                1024: "purple",
+                2048: "blue",
+                4096: "brown",
+                8192: "green",
+                16384: "red",
+                32768: "black"
+            }
+            let colorTableBlit = {
+                0: "white",
+                1: "orange",
+                2: "magenta",
+                3: "lightblue",
+                4: "yellow",
+                5: "lime",
+                6: "pink",
+                7: "gray",
+                8: "lightgray",
+                9: "cyan",
+                "a": "purple",
+                "b": "blue",
+                "c": "brown",
+                "d": "green",
+                "e": "red",
+                "f": "black"
+            }
+
+            function clr() {
+                context.fillStyle = "black" 
+                context.font = biggyityy+"px Courier New"
+                context.fillRect(0,0,can.width,can.height)
+            }
+
+            let helloed = false
+            sock.on("screen", function(dat) {
+                biggyity = context.measureText("a").width
+
+                can.style.width = dat.w * biggyity + biggyity + "px"
+                can.style.height = dat.h * biggyityy + 10 + "px"
+                can.width = dat.w * biggyity + biggyity
+                can.height = dat.h * biggyityy + 10
+
+                document.getElementById("dock").style.width = can.style.width
+
+                if (!helloed) {
+                    sock.emit('ping', LID, "screen")
+                    helloed = true
+                }
+
+                clr()
+                for (let i = 0; i < dat.lines.length; i++) {
+                    let x = biggyity
+                    for (let ii = 0; ii < dat.lines[i].length; ii++) {
+                        context.fillStyle = colorTableBlit[dat.bgColors[i][ii]]
+                        let t = context.measureText(dat.lines[i][ii])
+                        context.fillRect(x, i * biggyityy+(biggyityy/2)-5, t.width, i * biggyityy+biggyityy)
+                        context.fillStyle = colorTableBlit[dat.colors[i][ii]]
+                        if (dat.cursorBlink && i == dat.cursorY-1 && ii == dat.cursorX-1) {
+                            context.fillText(dat.lines[i][ii], x, i * biggyityy+biggyityy)
+                            context.fillStyle = "white"
+                            context.fillText("_", x, i * biggyityy+biggyityy)
+                        } else {
+                            context.fillText(dat.lines[i][ii], x, i * biggyityy+biggyityy)
+                        }
+                        x = x + biggyity
+                    }
+                }
+            })
+        </script>
+    </body>
+</html>
