@@ -1,0 +1,40 @@
+name: Bug Report
+description: File a bug report
+body:
+  - type: textarea
+    id: describe-bug
+    attributes:
+      label: Describe the bug
+      description: | 
+        A clear and concise description of what the bug is. You can paste screenshots if it helps explain the bug.
+      placeholder: Tell us what happened!
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: To reproduce
+      description: "Steps to reproduce the behavior:"
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: false
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: false
+  - type: textarea
+    id: errors
+    attributes:
+      label: The errors in the console
+      description: | 
+        If there is then give use a screenshot of the console
+      render: sh
+    validations:
+      required: false
