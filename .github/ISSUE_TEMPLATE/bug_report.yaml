@@ -35,6 +35,5 @@ body:
       label: The errors in the console
       description: | 
         If there is then give use a screenshot of the console
-      render: sh
     validations:
       required: false
