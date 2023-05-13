@@ -242,7 +242,25 @@ function commandHandler()
             end
         elseif parsed[1] == "cd" then
             if #parsed == 2 then 
-                dir = "/"..fs.combine(dir, parsed[2] and parsed[2] or "")
+                local predir = "/"..fs.combine(dir, parsed[2] and parsed[2] or "")
+                modem.transmit(port, port, {
+                    mode = "ISEXISTS",
+                    file = predir,
+                    token = authKey,
+                    author = id
+                })
+                local ok, data = ftpreceive(function(side, channel, replyChannel, message)
+                    return (message.mode == "EXISTS")
+                end)
+                if ok then
+                    if data.exists then
+                        dir = predir
+                    else
+                        print("File is not a directory")
+                    end
+                else
+                    print(data)
+                end
             else
                 print("Usage: cd <path>")
             end

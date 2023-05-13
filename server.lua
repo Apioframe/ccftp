@@ -217,6 +217,34 @@ function main()
                     target = message.author
                 })
             end
+        elseif message.mode == "ISEXISTS" then
+            if fs.exists(message.file) then
+                modem.transmit(port, port, {
+                    mode = "EXISTS",
+                    exists = true,
+                    target = message.author
+                })
+            else
+                modem.transmit(port, port, {
+                    mode = "EXISTS",
+                    exists = false,
+                    target = message.author
+                })
+            end
+        elseif message.mode == "ISDIR" then
+            if fs.isDir(message.file) then
+                modem.transmit(port, port, {
+                    mode = "DIR",
+                    dir = true,
+                    target = message.author
+                })
+            else
+                modem.transmit(port, port, {
+                    mode = "DIR",
+                    dir = false,
+                    target = message.author
+                })
+            end
         else
             modem.transmit(port, port, {
                 mode = "ERR",
