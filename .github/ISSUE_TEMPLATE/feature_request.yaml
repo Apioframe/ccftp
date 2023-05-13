@@ -1,0 +1,29 @@
+name: Feature request
+description: File a feature request
+body:
+  - type: textarea
+    id: describe
+    attributes:
+      label: Describe what you want
+      description: | 
+        A clear and concise description of what do you want. You can paste screenshots if it helps explain the feature.
+      placeholder: Tell us what do you want!
+    validations:
+      required: true
+  - type: textarea
+    id: ideas
+    attributes:
+      label: Ideas
+      description: "Ideas to implement the feature"
+      placeholder: |
+        1. Add ...
+        2. Remove ...
+    validations:
+      required: false
+  - type: textarea
+    id: other
+    attributes:
+      label: Other information
+      description: Any other information you have
+    validations:
+      required: false
